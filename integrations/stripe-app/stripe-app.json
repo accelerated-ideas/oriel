@@ -1,0 +1,51 @@
+{
+  "id": "com.useoriel.assistant",
+  "version": "1.0.0",
+  "name": "Oriel",
+  "icon": "./icon.png",
+  "distribution_type": "public",
+  "stripe_api_access_type": "oauth",
+  "sandbox_install_compatible": true,
+  "allowed_redirect_uris": [
+    "https://useoriel.com/api/integrations/stripe/callback",
+    "http://localhost:3010/api/integrations/stripe/callback"
+  ],
+  "permissions": [
+    {
+      "permission": "customer_read",
+      "purpose": "Finds the Stripe customer of the person signed in to your product, so the assistant only answers about their own billing."
+    },
+    {
+      "permission": "subscription_read",
+      "purpose": "Shows the signed-in person their plan, status and renewal date."
+    },
+    {
+      "permission": "subscription_write",
+      "purpose": "Cancels, resumes or switches the signed-in person's plan, only when you turn these actions on and they confirm."
+    },
+    {
+      "permission": "invoice_read",
+      "purpose": "Lists the signed-in person's invoices, with links to each one."
+    },
+    {
+      "permission": "payment_method_read",
+      "purpose": "Tells the signed-in person which card their subscription is billed to."
+    },
+    {
+      "permission": "product_read",
+      "purpose": "Shows plan names instead of IDs."
+    },
+    {
+      "permission": "plan_read",
+      "purpose": "Lists your prices, so you can choose which plans the assistant may switch people to."
+    },
+    {
+      "permission": "customer_portal_write",
+      "purpose": "Creates a billing portal link where the signed-in person can update their card or download invoices."
+    },
+    {
+      "permission": "connected_account_read",
+      "purpose": "Shows which Stripe account is connected in the Oriel dashboard."
+    }
+  ]
+}

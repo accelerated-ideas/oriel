@@ -1,0 +1,37 @@
+# The Slack app behind "Connect with Slack" on an assistant's Integrations page.
+# Paste it into your app's App Manifest page at https://api.slack.com/apps (or
+# Create New App > From a manifest), with redirect URLs for where this app runs:
+# Slack only accepts https, so local testing uses `npm run dev:https`. Then copy
+# the Client ID and Client Secret from Basic Information into SLACK_CLIENT_ID and
+# SLACK_CLIENT_SECRET, and upload integrations/app-icon-1024.png as the icon.
+# To let other workspaces install it, turn on Manage Distribution > Public
+# Distribution.
+display_information:
+  name: Oriel
+  description: Lets your AI assistant tell the team when a visitor needs them.
+  background_color: "#6352f2"
+features:
+  # Oriel only posts: no Home tab, and no DMs it would never answer.
+  app_home:
+    home_tab_enabled: false
+    messages_tab_enabled: false
+    messages_tab_read_only_enabled: false
+  bot_user:
+    display_name: Oriel
+    always_online: true
+oauth_config:
+  redirect_urls:
+    - https://useoriel.com/api/integrations/slack/callback
+    - https://localhost:3010/api/integrations/slack/callback
+  scopes:
+    bot:
+      - chat:write
+      - chat:write.public
+      - channels:read
+      - groups:read
+settings:
+  # Slack doesn't allow turning this off once it's on. Org-wide installs are
+  # refused when connecting (src/lib/integrations/providers/slack.ts).
+  org_deploy_enabled: true
+  socket_mode_enabled: false
+  token_rotation_enabled: false

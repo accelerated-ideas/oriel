@@ -1,0 +1,34 @@
+/* The brand's outside look, for the marketing site and the pages before the
+   app (sign-in, invitations): warm paper and ink, with iris used flat and
+   sparingly. It overrides the app's tokens for this subtree only, so every
+   utility (bg-surface, text-muted, border-line…) follows along. */
+.paper {
+  --color-canvas: #f2efe9;
+  --color-surface: #fbfaf7;
+  --color-surface-2: #e9e5dd;
+  --color-surface-3: #ddd8ce;
+  --color-line: rgb(28 25 21 / 0.11);
+  --color-line-strong: rgb(28 25 21 / 0.2);
+  --color-ink: #161411;
+  --color-ink-2: #3a3631;
+  --color-muted: #6c665d;
+  --color-faint: #a09a90;
+  --color-accent-soft: #e7e3fb;
+
+  background: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+/* Headlines, in the brand face. Weight, size and tracking come from utilities. */
+.paper :global(.headline) {
+  font-family: var(--font-funnel), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Words people say out loud: captions and quotes. */
+.paper :global(.spoken) {
+  font-family: var(--font-garamond), ui-serif, Georgia, serif;
+}
+
+.paper ::selection {
+  background: #d9d3fb;
+}

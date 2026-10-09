@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "src/app/api/knowledge/worker/route.ts": { "memory": 2048 }
+  },
+  "crons": [{ "path": "/api/knowledge/worker", "schedule": "0 4 * * *" }]
+}

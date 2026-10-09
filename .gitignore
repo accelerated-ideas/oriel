@@ -36,6 +36,15 @@ yarn-error.log*
 # vercel
 .vercel
 
+# the hosted service's plans; npm install creates it from the example (scripts/setup-plans.mjs)
+/src/config/subscription-plans.ts
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+!.env.example
+.gstack/
+
+# local https certificate for npm run dev:https
+/certificates
