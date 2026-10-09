@@ -9,8 +9,8 @@ export const BRAND = {
   messagePrefix: "oriel",
   // The product's website, linked from "Powered by Oriel" in the widget.
   siteUrl: "https://useoriel.com",
-  // The public source code. Empty until it's published; the site says "coming soon".
-  repoUrl: "",
+  // The public source code.
+  repoUrl: "https://github.com/accelerated-ideas/oriel",
 } as const;
 
 export function appUrl(path = "") {

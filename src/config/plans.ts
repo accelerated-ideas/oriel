@@ -3,9 +3,7 @@
 // Self-hosted installs have no plans, limits or billing (see src/config/edition.ts).
 //
 // The plans themselves (prices, limits, Stripe IDs) are in
-// src/config/subscription-plans.ts, which isn't in the public repository.
-// `npm install` creates it from subscription-plans.example.ts when it's
-// missing (scripts/setup-plans.mjs).
+// src/config/subscription-plans.ts.
 //
 // Messages are what visitors send, by voice or text; replies don't count, and
 // neither does a goodbye the assistant answers by closing the conversation

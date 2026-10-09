@@ -11,7 +11,6 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "db:reset": "supabase db reset",
-    "postinstall": "node scripts/setup-plans.mjs",
     "app-assistant": "tsx --env-file=.env.local --conditions=react-server scripts/app-assistant.ts"
   },
   "dependencies": {

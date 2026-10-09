@@ -25,6 +25,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Integrations (`src/lib/integrations`): a tool is a job (`capabilities.ts`), not a service, and each service is an adapter in `providers/` registered in `providers/index.ts`. A new service needs a catalog entry, an adapter, the provider in the `integrations_provider_check` constraint and its logo in `src/components/brand/integration-logos.tsx`. Secrets go through `store.ts`, never into `metadata` or `config`.
 - Knowledge work (imports, indexing, refresh) runs in the background worker (`src/lib/knowledge/worker.ts`), never in a request: queue it with `src/lib/knowledge/queue.ts` and wake the worker from `after()`.
 - The dashboard's help assistant learns from `src/content/app-assistant/guide.md` and `site-map.ts`. When you add or change a dashboard feature, update the guide and run `npm run app-assistant`.
-- Workspace pages render inside `WorkspaceShell`. Plan limits go through `src/lib/billing/limits.ts`. Import plans from `src/config/plans.ts`. The plan list itself (`src/config/subscription-plans.ts`) is private and gitignored: when its shape changes, change `subscription-plans.example.ts` the same way.
+- Workspace pages render inside `WorkspaceShell`. Plan limits go through `src/lib/billing/limits.ts`. Import plans from `src/config/plans.ts`; the plan list itself is `src/config/subscription-plans.ts`.
 - Dashboard pages use `PageBody` (one shared width). Conversations is the exception: a full-height split, with the list in its layout and the conversation in the page.
 

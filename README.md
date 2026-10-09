@@ -143,7 +143,7 @@ The whole repository is open source (see "License"), including the hosted servic
 | | Self-hosted (default) | Cloud (`NEXT_PUBLIC_EDITION=cloud`) |
 | --- | --- | --- |
 | `/` | Redirects to the dashboard | Marketing site |
-| Plans, limits, Billing page | None: every feature, no limits | From `src/config/subscription-plans.ts` (private, see below) |
+| Plans, limits, Billing page | None: every feature, no limits | From `src/config/subscription-plans.ts` |
 | Workspaces, members, invitations | Yes | Yes, with seats per plan |
 | "Powered by Oriel" in the widget | Shown; owners can hide it (Install > Appearance) | Shown; the Premium plan can hide it |
 
@@ -161,8 +161,6 @@ A self-hosted install serves the dashboard at `/`; the marketing site (`src/app/
   - **Member:** builds and runs assistants.
   - Invitation links work for 14 days. They're emailed through Resend when it's set up; either way the link can be copied from the Members page. Someone who already has an account sees their invitations on the dashboard home.
 - **Plans (cloud):** prices, limits and Stripe product/price IDs (per environment) live in `src/config/subscription-plans.ts`. The landing page and the Billing page read them through `src/config/plans.ts`. Fill in the Stripe IDs after creating the products in Stripe.
-  - **Not in the repository:** the hosted service's plans are private, so the file is gitignored. `npm install` creates it from `subscription-plans.example.ts` (illustrative plans) when it's missing. Change both files together when the plan shape changes.
-  - **Deploying from Git:** set `SUBSCRIPTION_PLANS_BASE64` to the real file, base64-encoded (`base64 -i src/config/subscription-plans.ts | pbcopy` on macOS), and `npm install` writes it before the build. A cloud build on Vercel or CI without the file or the variable fails, rather than going live with the example plans.
 - **Limits (cloud)** are in `src/lib/billing/limits.ts`:
   - **Assistants and seats:** checked when creating an assistant or inviting someone. Pending invitations count as seats.
   - **Messages:** counted per calendar month (UTC), or over the trial. At the limit, or with no active plan, the launcher hides and the assistant stops answering.
@@ -279,21 +277,6 @@ Calls only need `ELEVENLABS_API_KEY`, with Text to Speech and Speech to Text acc
 | `NEXT_PUBLIC_DEMO_AGENT_ID` | Optional. A live assistant for the landing page demo bubble. |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Cloud, optional. Google Analytics for the marketing site. It loads only after a visitor allows it in the cookie banner (`src/components/web/consent`); unset, there's no banner. |
 | `ALLOW_PRIVATE_URLS` | Development only. Lets actions and imports reach localhost. |
-
-## Deploy your own
-
-A self-hosted install runs the same app with no plans or limits (leave `NEXT_PUBLIC_EDITION` unset).
-
-1. **Database:** create a Supabase project and apply the migrations with `supabase link` then `supabase db push`. pgvector is enabled by the first migration.
-2. **Sign-in emails:** in the Supabase project's Auth settings, set up SMTP, and paste `supabase/templates/verify-otp.html` into the "Magic Link" email template. It sends the 6-digit code the sign-in page asks for.
-   - **Google sign-in (optional):** create an OAuth client in Google Cloud (web application) with `https://<project-ref>.supabase.co/auth/v1/callback` as an authorized redirect URI. Turn on the Google provider in Supabase (Authentication, then Sign In / Providers) with its client ID and secret, and add `https://<your app>/api/auth/callback` to the project's Redirect URLs. The sign-in page offers Google once the provider is on (it checks every few minutes); `/api/auth/callback` finishes the sign-in.
-3. **Keys:** `GOOGLE_API_KEY` (Gemini) is required. `ANTHROPIC_API_KEY` runs the default model, Claude Haiku 5.5; without it, assistants answer with Gemini 3.8 Flash. `ELEVENLABS_API_KEY` adds calls; without it assistants are text-only. Generate `WIDGET_SESSION_SECRET` and `ENCRYPTION_KEY` (32+ random characters each) and keep them: changing `ENCRYPTION_KEY` makes stored secrets unreadable. The full list is under "Environment".
-4. **App:** deploy to Vercel, or any Node 22 host with `npm run build && npm start`. Set `NEXT_PUBLIC_APP_URL` to its public URL before building: it's baked into `/embed.js`.
-5. **Knowledge worker:** imports and refreshes run in `/api/knowledge/worker`, and imports wake it on their own. Its daily automatic refresh runs from `vercel.json` on Vercel. Elsewhere, set `CRON_SECRET` and call `GET /api/knowledge/worker` daily with `Authorization: Bearer <CRON_SECRET>`.
-6. **Sites built in the browser:** reading them needs Chromium. On Vercel it's bundled. Elsewhere an installed Chrome is used; point `CHROMIUM_PATH` at it if it isn't found, use a hosted browser with `BROWSER_WS_ENDPOINT`, or set `KNOWLEDGE_BROWSER=off` to read only plain HTML.
-7. **First sign-in:** signing in creates your workspace. Create an assistant, add your site's domain under **Install**, and paste the snippet into your site.
-
-Not covered yet: a Docker image, and upgrade notes between versions (apply new migrations with `supabase db push` before deploying new code).
 
 ## Layout
 
