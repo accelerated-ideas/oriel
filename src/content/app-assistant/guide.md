@@ -100,6 +100,10 @@ Things the assistant can do, not just answer.
 
 Connect the services your team already uses, so the assistant can act in them. Press Connect on a service to open a panel on the right with the steps; values to paste into the service have Copy buttons. A connected service shows what it's set to in one line, with a Configure button. Configure opens a panel with a link to the service, a test button where there is one (Send a test message for Slack, Create a test ticket for Zendesk), its settings, and what the assistant does with it: switch each job on or off, and for tickets, leads, bookings and billing changes, choose whether the visitor confirms first. Nothing changes until you press Save; Cancel or closing the panel drops the changes. A test uses what's saved, so it's off while there are unsaved changes. Disconnect is at the bottom of that panel.
 
+- Email and Webhook: where follow-up requests go when the assistant can't resolve something, besides Insights and Slack. Nobody joins the conversation live; the assistant tells the visitor the team will follow up by email.
+  - Email: press Set up and enter your team's address. Each request arrives with a summary, how to reach the visitor and a link to the conversation; when the visitor left an email, replying goes to them.
+  - Webhook: press Set up and enter your endpoint. We POST the same as JSON, to open a ticket or ping a tool we don't connect to. Configure shows the JSON.
+  - Both have a test button in Configure (Send a test email, Send a test request).
 - Stripe: press Connect with Stripe and install the {{product}} app on Stripe's page, approving the permissions it lists. Or paste a restricted API key with the permissions shown. Connect a sandbox, when offered, is for trying it with test data.
   - The assistant can then look up a signed-in visitor's subscription, plan, renewal date and invoices, and help with billing changes.
   - It only works for visitors your site has identified, and only with their own Stripe customer: include stripe_customer_id in the identity token (see Install).
@@ -145,7 +149,6 @@ Each section has its own Save button, which appears once something in it changes
   - Allow typing lets visitors switch from voice to text.
   - Read the current page shares the visible text and links of the visitor's page, so answers match what they see and the assistant can open items listed there.
   - Dig into problems makes it ask follow-up questions when someone is stuck and log what it learns in Insights.
-- Follow-ups: an email address and/or a webhook for requests the assistant can't resolve, so your team can get back to the visitor. Nobody joins the conversation live; the assistant tells the visitor the team will follow up by email.
 
 ## Install
 

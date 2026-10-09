@@ -15,7 +15,7 @@ export const APP_SITE_MAP: { title: string; path: string; description: string }[
   { title: "Knowledge", path: "/account/{workspace}/agents/{assistant}/knowledge", description: "Websites, files and notes it answers from; refresh pages here." },
   { title: "Site map", path: "/account/{workspace}/agents/{assistant}/site-map", description: "Pages of the customer's site it can take visitors to." },
   { title: "Actions", path: "/account/{workspace}/agents/{assistant}/actions", description: "Built-in and custom actions (HTTP and browser)." },
-  { title: "Integrations", path: "/account/{workspace}/agents/{assistant}/integrations", description: "Connect Stripe." },
-  { title: "Behavior", path: "/account/{workspace}/agents/{assistant}/behavior", description: "Name, opening line, instructions, voice, language, AI model and fallback, follow-ups." },
+  { title: "Integrations", path: "/account/{workspace}/agents/{assistant}/integrations", description: "Where follow-up requests go (email, webhook, Slack) and the services it works with: Stripe, Zendesk, Salesforce, HubSpot, Cal.com, Calendly." },
+  { title: "Behavior", path: "/account/{workspace}/agents/{assistant}/behavior", description: "Name, opening line, instructions, voice, language, AI model and fallback." },
   { title: "Install", path: "/account/{workspace}/agents/{assistant}/install", description: "Embed snippet, identifying users, allowed domains, the assistant's avatar and the bubble's look." },
 ];

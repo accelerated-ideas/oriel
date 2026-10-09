@@ -35,7 +35,6 @@ const SECTION_FIELDS = {
   voice: ["voice_id", "language"],
   model: ["chat_model", "fallback_model"],
   conversation: ["text_mode_enabled", "share_page_content", "feedback_interviews_enabled"],
-  handoffs: ["handoff_email", "handoff_webhook_url"],
 } as const;
 type Section = keyof typeof SECTION_FIELDS;
 
@@ -71,8 +70,6 @@ export function BehaviorForm({ agent, availableModels }: { agent: Agent; availab
       text_mode_enabled: agent.text_mode_enabled,
       share_page_content: agent.share_page_content,
       feedback_interviews_enabled: agent.feedback_interviews_enabled,
-      handoff_email: agent.handoff_email ?? "",
-      handoff_webhook_url: agent.handoff_webhook_url ?? "",
       chat_model: agent.chat_model as ChatModelId,
       fallback_model: agent.fallback_model as ChatModelId | null,
     }),
@@ -321,30 +318,6 @@ export function BehaviorForm({ agent, availableModels }: { agent: Agent; availab
           checked={values.feedback_interviews_enabled}
           onChange={(value) => set("feedback_interviews_enabled", value)}
         />
-      </SectionCard>
-
-      <SectionCard
-        title="Follow-ups"
-        description="Where to send requests it can't resolve, so your team can get back to the visitor. They always appear in Insights too."
-        footer={footer("handoffs")}
-      >
-        <Field label="Email" htmlFor="handoff-email">
-          <Input
-            id="handoff-email"
-            type="email"
-            value={values.handoff_email}
-            onChange={(e) => set("handoff_email", e.target.value)}
-            placeholder="support@acme.com"
-          />
-        </Field>
-        <Field label="Webhook" htmlFor="handoff-webhook" hint="We POST a JSON summary with a link to the transcript.">
-          <Input
-            id="handoff-webhook"
-            value={values.handoff_webhook_url}
-            onChange={(e) => set("handoff_webhook_url", e.target.value)}
-            placeholder="https://hooks.slack.com/…"
-          />
-        </Field>
       </SectionCard>
     </div>
   );

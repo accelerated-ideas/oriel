@@ -2,6 +2,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { authorizeAgent } from "@/lib/auth/access";
+import { BRAND } from "@/config/brand";
+import { assertPublicUrl } from "@/lib/actions/ssrf";
+import { emailConfigured, sendEmail } from "@/lib/email";
 import { addCapabilities, removeCapabilities, setCapabilityProvider } from "@/lib/integrations/actions";
 import { CAPABILITIES, type Capability } from "@/lib/integrations/capabilities";
 import { isProviderId, providerInfo, type ProviderId } from "@/lib/integrations/catalog";
@@ -130,6 +133,45 @@ export async function actionTestIntegration(agentId: string, provider: string): 
     return { ok: true, data: await adapter.test(connection, { assistantName: access.agent.assistant_name }) };
   } catch (error) {
     return { ok: false, error: `${providerInfo(provider).name} said: ${errorMessage(error)}` };
+  }
+}
+
+// A test of where follow-up requests go: an email, or a request to the webhook.
+export async function actionTestFollowUp(agentId: string, kind: "email" | "webhook"): Promise<ActionResult<{ note: string }>> {
+  const access = await authorizeAgent(agentId);
+  if (!access.ok) return access;
+  const { agent } = access;
+
+  if (kind === "email") {
+    if (!agent.handoff_email) return { ok: false, error: "Add an email address first." };
+    if (!emailConfigured()) return { ok: false, error: "Sending email isn't set up on this server (RESEND_API_KEY)." };
+    const sent = await sendEmail({
+      to: agent.handoff_email,
+      subject: `Test from ${BRAND.name}`,
+      text: `${agent.assistant_name} will email follow-up requests here: a summary of what the visitor needs, how to reach them and a link to the conversation.\n\nThis one is only a test.`,
+    });
+    return sent ? { ok: true, data: { note: `Test email sent to ${agent.handoff_email}` } } : { ok: false, error: "The email couldn't be sent." };
+  }
+
+  if (!agent.handoff_webhook_url) return { ok: false, error: "Add an endpoint first." };
+  try {
+    await assertPublicUrl(agent.handoff_webhook_url);
+    const response = await fetch(agent.handoff_webhook_url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        type: "test",
+        assistant: { id: agent.id, name: agent.assistant_name },
+        summary: `This is a test from ${BRAND.name}.`,
+        created_at: new Date().toISOString(),
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
+    return response.ok
+      ? { ok: true, data: { note: `Your endpoint answered ${response.status}` } }
+      : { ok: false, error: `Your endpoint answered ${response.status}.` };
+  } catch (error) {
+    return { ok: false, error: `Couldn't reach your endpoint: ${errorMessage(error)}` };
   }
 }
 

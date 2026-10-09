@@ -4,10 +4,12 @@ import { requireAgentPage } from "@/lib/auth/access";
 import { PROVIDERS } from "@/lib/integrations/catalog";
 import { availableProviders } from "@/lib/integrations/providers";
 import { STRIPE_KEY_PERMISSIONS, stripeAppModes } from "@/lib/integrations/stripe";
+import { emailConfigured } from "@/lib/email";
 import { PageBody } from "@/components/dashboard/app-shell";
 import { PageHeader } from "@/components/ui/misc";
 import type { Action, Integration } from "@/lib/types";
 import type { SafeAction } from "../actions/tool-row";
+import { FollowUpCards } from "./follow-up-cards";
 import { IntegrationsBody } from "./integrations-body";
 import { ServiceCards, type ServiceAction, type ServiceConnection } from "./service-cards";
 
@@ -52,6 +54,13 @@ export default async function IntegrationsPage({
         appModes={stripeAppModes()}
         permissions={STRIPE_KEY_PERMISSIONS.map((permission) => ({ ...permission }))}
         notice={notice ?? null}
+      />
+      <FollowUpCards
+        agentId={agentId}
+        assistantName={agent.assistant_name}
+        email={agent.handoff_email}
+        webhookUrl={agent.handoff_webhook_url}
+        emailReady={emailConfigured()}
       />
       <ServiceCards
         agentId={agentId}
