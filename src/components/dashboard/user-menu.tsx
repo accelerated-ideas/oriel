@@ -2,9 +2,8 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ChevronsUpDown, Cookie, CreditCard, LogOut, PenLine, Plus } from "lucide-react";
-import { ANALYTICS_ENABLED } from "@/config/analytics";
-import { openSettings } from "@/components/consent/consent-store";
+import { Check, ChevronsUpDown, CreditCard, LogOut, PenLine, Plus } from "lucide-react";
+import { forgetProductAnalyticsUser } from "@/components/dashboard/product-analytics";
 import { actionSignOut } from "@/server-actions/auth";
 import { actionCreateWorkspace, actionRenameWorkspace } from "@/server-actions/workspaces";
 import { runAction } from "@/lib/run-action";
@@ -87,7 +86,7 @@ export function UserMenu({ user, organization, role, workspaces, billing, onNavi
         <DropdownMenuTrigger className="group flex w-full items-center gap-2.5 rounded-xl p-1.5 text-left transition-[background-color,box-shadow] duration-150 outline-none hover:bg-black/[0.04] focus-visible:shadow-[0_0_0_2px_var(--color-accent)] data-[state=open]:bg-surface data-[state=open]:shadow-border">
           <MonsterAvatar seed={user.id} size={32} />
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-[13.5px] leading-tight font-medium text-ink">{user.email}</span>
+            <span className="ph-mask block truncate text-[13.5px] leading-tight font-medium text-ink">{user.email}</span>
             <span className="mt-0.5 block truncate text-[12px] leading-tight text-muted">{organization.name}</span>
           </span>
           <ChevronsUpDown className="size-4 shrink-0 text-faint transition-colors group-hover:text-muted" />
@@ -97,7 +96,7 @@ export function UserMenu({ user, organization, role, workspaces, billing, onNavi
           <div className="flex items-center gap-3 px-2 pt-1.5 pb-2.5">
             <MonsterAvatar seed={user.id} size={40} />
             <div className="min-w-0">
-              <p className="truncate text-[13.5px] font-semibold text-ink">{user.email}</p>
+              <p className="ph-mask truncate text-[13.5px] font-semibold text-ink">{user.email}</p>
               <p className="truncate text-[12.5px] text-muted">
                 {ROLE_LABEL[role]} of {organization.name}
               </p>
@@ -139,15 +138,16 @@ export function UserMenu({ user, organization, role, workspaces, billing, onNavi
           </DropdownMenuItem>
           <DropdownMenuSeparator />
 
-          {ANALYTICS_ENABLED && (
-            // Changing the analytics choice is as easy as making it (see consent-banner.tsx).
-            <DropdownMenuItem onSelect={openSettings}>
-              <Cookie /> Cookie settings
-            </DropdownMenuItem>
-          )}
           {/* Not a <form>: choosing an item closes the menu and unmounts it before
               the browser submits, so the submission would be dropped. */}
-          <DropdownMenuItem onSelect={() => startSignOut(() => actionSignOut())}>
+          <DropdownMenuItem
+            onSelect={() =>
+              startSignOut(async () => {
+                await forgetProductAnalyticsUser();
+                await actionSignOut();
+              })
+            }
+          >
             <LogOut /> Log out
           </DropdownMenuItem>
         </DropdownMenuContent>

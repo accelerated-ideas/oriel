@@ -24,7 +24,8 @@ export function InsightList({
 }) {
   const router = useRouter();
   return (
-    <Card className="mt-8 divide-y divide-line overflow-hidden">
+    // Masked in session recordings: insights quote visitors.
+    <Card className="ph-mask mt-8 divide-y divide-line overflow-hidden">
       {insights.map((insight) => (
         <div key={insight.id} className="flex gap-4 px-5 py-4">
           <div className="min-w-0 flex-1">

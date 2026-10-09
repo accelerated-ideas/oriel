@@ -40,7 +40,8 @@ export default async function ConversationsLayout({
 
   return (
     // Fills the panel under the top bar (8px page padding + 57px bar + 8px).
-    <div className="flex flex-col lg:h-[calc(100dvh-73px)] lg:flex-row">
+    // Visitors' conversations are masked in session recordings (ph-mask).
+    <div className="ph-mask flex flex-col lg:h-[calc(100dvh-73px)] lg:flex-row">
       <ConversationList agentId={agentId} base={base} initial={initial} />
       <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto scrollbar-thin">{children}</section>
     </div>

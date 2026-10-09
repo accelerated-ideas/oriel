@@ -23,18 +23,11 @@ const ANSWER =
   "h-10 rounded-full bg-ink px-4 text-[14.5px] font-medium text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.1)] transition-[background-color,scale] duration-150 ease-out hover:bg-zinc-800 active:scale-[0.97]";
 
 // Not tied to one analytics tool, so the wording holds if the tool changes.
-// The privacy policy names the tool. On the website nothing runs until they
-// answer; the dashboard also measures without cookies (see analytics.tsx).
-const TEXT = {
-  site: `Cookies help us track how ${BRAND.name} is used, so we can improve it and your experience. They only run if you allow them, and you can change your mind any time from Cookie settings at the bottom of the page.`,
-  dashboard: `Cookies help us track how ${BRAND.name} is used, so we can improve it and your experience. You can change your mind any time from Cookie settings in your account menu.`,
-};
+// The privacy policy names the tool. Only the website asks: nothing runs
+// there until they answer. The dashboard measures everyone signed in.
+const TEXT = `Cookies help us track how ${BRAND.name} is used, so we can improve it and your experience. They only run if you allow them, and you can change your mind any time from Cookie settings at the bottom of the page.`;
 
-export function ConsentBanner({
-  place = "site",
-}: {
-  place?: keyof typeof TEXT;
-}) {
+export function ConsentBanner() {
   const { choice, settingsOpen } = useConsent();
   const show = ANALYTICS_ENABLED && (choice === "unset" || settingsOpen);
   const ref = useRef<HTMLElement>(null);
@@ -58,9 +51,7 @@ export function ConsentBanner({
         ? hasStoredChoice()
           ? "Right now it's off."
           : "It's off, because your browser asks sites not to track you."
-        : place === "dashboard" && choice === "unset"
-          ? "Right now it measures without cookies."
-          : null;
+        : null;
 
   return (
     <AnimatePresence>
@@ -96,7 +87,7 @@ export function ConsentBanner({
             </span>
           </p>
           <p className="mt-2 text-[14.5px] leading-relaxed text-pretty text-ink-2">
-            {TEXT[place]}
+            {TEXT}
             {IS_CLOUD && (
               <>
                 {" "}

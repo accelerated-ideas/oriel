@@ -10,24 +10,21 @@ type AnalyticsWindow = { gtag?: (...args: unknown[]) => void; [disable: `ga-disa
 // Google Analytics, with advertising features always off.
 //   Website: nothing loads until the visitor allows it. Before that no script,
 //   request or cookie reaches Google.
-//   Dashboard (`cookieless`): until they choose, it runs in Google's consent
-//   mode with storage denied: no cookies, and Google gets cookieless pings it
-//   uses to model visits. Allowing turns cookies on. "Don't allow", or a
-//   Global Privacy Control signal, stops it entirely.
-export function Analytics({ cookieless = false }: { cookieless?: boolean }) {
+//   Dashboard (`always`): on, with cookies, for everyone signed in.
+export function Analytics({ always = false }: { always?: boolean }) {
   const { choice } = useConsent();
-  const granted = choice === "granted";
-  const sending = granted || (cookieless && choice === "unset");
+  const granted = always || choice === "granted";
+  const sending = granted;
 
   // Choosing, or changing their mind later: switch cookies on or off, or stop
   // sending and remove the cookies.
   useEffect(() => {
-    if (!ANALYTICS_ENABLED || choice === "pending") return;
+    if (!ANALYTICS_ENABLED || (choice === "pending" && !always)) return;
     const win = window as unknown as AnalyticsWindow;
     win[`ga-disable-${GA_MEASUREMENT_ID}`] = !sending;
     win.gtag?.("consent", "update", { analytics_storage: granted ? "granted" : "denied" });
     if (!granted) removeAnalyticsCookies();
-  }, [choice, granted, sending]);
+  }, [always, choice, granted, sending]);
 
   if (!ANALYTICS_ENABLED || !sending) return null;
 

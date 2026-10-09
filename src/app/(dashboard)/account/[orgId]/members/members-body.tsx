@@ -160,7 +160,8 @@ export function InviteButton({ organizationId }: { organizationId: string }) {
 
 function Row({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <li className={cn("flex items-center gap-3.5 px-4 py-3.5 sm:px-5", className)}>
+    // Names and emails are masked in session recordings.
+    <li className={cn("ph-mask flex items-center gap-3.5 px-4 py-3.5 sm:px-5", className)}>
       {children}
     </li>
   );

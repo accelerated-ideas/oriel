@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ANALYTICS_ENABLED } from "@/config/analytics";
+import { ANALYTICS_ENABLED, POSTHOG_TOKEN } from "@/config/analytics";
 import { BRAND } from "@/config/brand";
 import { LEGAL, LEGAL_UPDATED_AT } from "@/config/legal";
 import { LegalPage, type LegalSection } from "@/components/web/legal/legal-page";
@@ -12,8 +12,11 @@ export const metadata: Metadata = pageMetadata({ title: "Privacy policy", descri
 
 // Written from what the code does: src/app/api/widget/session (what's stored
 // per conversation), src/lib/widget/embed-script.ts (browser storage), the
-// providers in README "Stack", and src/components/consent (analytics, only
-// described once NEXT_PUBLIC_GA_MEASUREMENT_ID is set). Update it when those change.
+// providers in README "Stack", src/components/consent (Google Analytics, only
+// described once NEXT_PUBLIC_GA_MEASUREMENT_ID is set) and
+// src/components/dashboard/product-analytics.tsx (PostHog, once its token is
+// set). Update it when those change.
+const POSTHOG_ENABLED = POSTHOG_TOKEN.startsWith("phc_");
 const PROVIDERS = [
   { name: "Supabase", use: "Our database, and sign-in" },
   { name: "Anthropic (Claude API)", use: "Writing answers, unless an assistant is set to use another model" },
@@ -25,7 +28,10 @@ const PROVIDERS = [
   { name: "Upstash", use: "Rate limiting, to keep the service from being abused" },
   { name: "Vercel", use: "Hosting the app and website" },
   ...(ANALYTICS_ENABLED
-    ? [{ name: "Google Analytics", use: "Measuring visits to our website if you allow it, and how the dashboard is used, without cookies unless you allow them" }]
+    ? [{ name: "Google Analytics", use: "Measuring visits to our website if you allow it, and how the dashboard is used" }]
+    : []),
+  ...(POSTHOG_ENABLED
+    ? [{ name: "PostHog (EU)", use: "Measuring how the dashboard is used, and recording dashboard sessions to find what's confusing or broken" }]
     : []),
 ];
 
@@ -161,8 +167,8 @@ const SECTIONS: LegalSection[] = [
     body: (
       <p>
         Where laws like the GDPR apply, we rely on our contract with you to provide the service, on our legitimate interests to keep
-        it secure and improve it{ANALYTICS_ENABLED && ", including measuring how the dashboard is used without cookies"}, on legal
-        obligations for records like invoices, and on consent where we ask for it{ANALYTICS_ENABLED && ", such as for analytics cookies"}.
+        it secure and improve it{(ANALYTICS_ENABLED || POSTHOG_ENABLED) && `, including measuring${POSTHOG_ENABLED ? " and recording" : ""} how the dashboard is used`}, on legal
+        obligations for records like invoices, and on consent where we ask for it{ANALYTICS_ENABLED && ", such as for analytics cookies on our website"}.
         For visitors&apos; data, the customer whose site they used decides the legal basis.
       </p>
     ),
@@ -219,6 +225,7 @@ const SECTIONS: LegalSection[] = [
         <li>Billing and usage records are kept as long as tax and accounting rules require.</li>
         <li>Rate-limiting records expire within minutes.</li>
         {ANALYTICS_ENABLED && <li>Google Analytics keeps what it measures for 14 months.</li>}
+        {POSTHOG_ENABLED && <li>PostHog keeps session recordings for 30 days, and what it measures in the dashboard for a year.</li>}
       </ul>
     ),
   },
@@ -228,8 +235,8 @@ const SECTIONS: LegalSection[] = [
     body: (
       <>
         <p>
-          {ANALYTICS_ENABLED
-            ? "Our website and dashboard use what they need to work, and analytics cookies only if you allow them. The dashboard also measures how it's used without cookies. We never use advertising cookies."
+          {ANALYTICS_ENABLED || POSTHOG_ENABLED
+            ? `Our website uses what it needs to work, and analytics cookies only if you allow them. The dashboard measures how everyone signed in uses it${POSTHOG_ENABLED ? ", and records sessions" : ""}. We never use advertising cookies.`
             : "Our website and dashboard use cookies only to keep you signed in. We don't use analytics or advertising cookies."}
         </p>
         <ul>
@@ -240,27 +247,31 @@ const SECTIONS: LegalSection[] = [
           {ANALYTICS_ENABLED && (
             <>
               <li>
-                <strong>Your cookie choice:</strong> kept in your browser&apos;s storage as <code>{BRAND.messagePrefix}:consent</code>,
-                so we don&apos;t ask on every page. We ask again after 6 months.
+                <strong>Your cookie choice on our website:</strong> kept in your browser&apos;s storage as{" "}
+                <code>{BRAND.messagePrefix}:consent</code>, so we don&apos;t ask on every page. We ask again after 6 months.
               </li>
               <li>
-                <strong>Google Analytics cookies, only if you allow them:</strong> <code>_ga</code> and <code>_ga_&hellip;</code>,
-                which count visits and how people move around our website and dashboard, for up to 13 months. Google doesn&apos;t
-                store your IP address, and its advertising features and Google signals are off.
-              </li>
-              <li>
-                <strong>Google Analytics without cookies, in the dashboard:</strong> until you choose, the dashboard tells Google
-                Analytics which pages are viewed and what&apos;s clicked, without cookies or any ID stored on your device, so Google
-                can only estimate visits. Choosing Don&apos;t allow stops it.
+                <strong>Google Analytics cookies:</strong> <code>_ga</code> and <code>_ga_&hellip;</code>, which count visits and how
+                people move around, for up to 13 months: on our website only if you allow them, and in the dashboard for everyone
+                signed in. Google doesn&apos;t store your IP address, and its advertising features and Google signals are off.
               </li>
             </>
+          )}
+          {POSTHOG_ENABLED && (
+            <li>
+              <strong>PostHog, in the dashboard:</strong> a <code>ph_&hellip;_posthog</code> cookie and browser storage that tell
+              visits apart and link them to your account by its ID, never your email. Session recordings show the pages you open,
+              where you click and scroll. They hide everything you type, the email addresses on screen, and visitors&apos;
+              conversations and insights. PostHog stores this in the EU.
+            </li>
           )}
         </ul>
         {ANALYTICS_ENABLED && (
           <p>
             On our website nothing optional runs until you choose. Change your mind any time with Cookie settings at the bottom of
-            every page of our website or in your account menu in the dashboard; if you turn analytics off, we remove its cookies and
-            stop measuring. If your browser sends a Global Privacy Control signal, we treat it as a no.
+            every page; if you turn analytics off, we remove its cookies and stop measuring. If your browser sends a Global Privacy
+            Control signal, we treat it as a no. The dashboard doesn&apos;t ask: it&apos;s measured
+            {POSTHOG_ENABLED ? " and recorded" : ""} as described here for everyone signed in.
           </p>
         )}
         <p>

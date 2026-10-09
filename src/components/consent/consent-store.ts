@@ -1,8 +1,8 @@
 "use client";
 import { BRAND } from "@/config/brand";
 
-// The choice about analytics cookies, shared by the website and the dashboard
-// (same origin, same answer). Remembering the choice is strictly necessary, so
+// The choice about analytics cookies on the website. (The dashboard doesn't
+// ask: it measures everyone signed in.) Remembering the choice is strictly necessary, so
 // it needs no consent of its own. It's kept with the date and the version of
 // what we asked, and goes stale after six months or when the question changes,
 // so we ask again.
@@ -11,7 +11,7 @@ type Stored = { analytics: Choice; version: number; at: number };
 
 const KEY = `${BRAND.messagePrefix}:consent`;
 // Bump when what we ask about changes (a new tool, a new purpose).
-// 2: the question covers the dashboard too.
+// 2: asked again when it covered the dashboard too, which no longer asks.
 const VERSION = 2;
 const MAX_AGE_MS = 182 * 24 * 60 * 60 * 1000;
 

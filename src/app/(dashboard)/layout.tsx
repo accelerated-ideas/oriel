@@ -3,7 +3,7 @@ import { getUser } from "@/lib/auth/get-user";
 import { APP_ASSISTANT_ID, appAssistantToken } from "@/lib/app-assistant";
 import { AppAssistant } from "@/components/dashboard/app-assistant";
 import { Analytics } from "@/components/consent/analytics";
-import { ConsentBanner } from "@/components/consent/consent-banner";
+import { ProductAnalytics } from "@/components/dashboard/product-analytics";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   // The app's own help assistant, when one is set up (npm run app-assistant).
@@ -14,9 +14,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <>
       {children}
       {APP_ASSISTANT_ID && user && <AppAssistant agentId={APP_ASSISTANT_ID} token={token} />}
-      {/* Measured without cookies until they allow them (see analytics.tsx). */}
-      <Analytics cookieless />
-      <ConsentBanner place="dashboard" />
+      {/* Everyone signed in is measured, and recorded with PostHog. */}
+      <Analytics always />
+      <ProductAnalytics />
       <Toaster
         position="bottom-right"
         toastOptions={{

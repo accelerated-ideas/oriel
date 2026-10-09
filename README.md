@@ -288,7 +288,8 @@ Calls only need `ELEVENLABS_API_KEY`, with Text to Speech and Speech to Text acc
 | `NEXT_PUBLIC_APP_ASSISTANT_ID`, `APP_ASSISTANT_WORKSPACE_ID` | The dashboard's help assistant (`npm run app-assistant` prints the ID). Optional. |
 | `KNOWLEDGE_AUTO_REFRESH_DAYS` | Self-hosted. How often website pages are re-read automatically (default 7, 0 turns it off). |
 | `NEXT_PUBLIC_DEMO_AGENT_ID` | Optional. A live assistant for the landing page demo bubble. |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Optional. Google Analytics (`src/components/consent`). On the marketing site it loads only after a visitor allows it in the cookie banner. In the dashboard it runs in Google's consent mode without cookies until people choose; "Allow" adds cookies, "Don't allow" or a Global Privacy Control signal stops it. The choice is shared by both and can be changed from Cookie settings (site footer, account menu). Unset, there's no analytics and no banner. |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Optional. Google Analytics (`src/components/consent`): on the marketing site only after a visitor allows it in the cookie banner, in the dashboard for everyone signed in. |
+| `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`, `NEXT_PUBLIC_POSTHOG_HOST` | Cloud, optional. PostHog analytics and session recordings in the dashboard (`src/components/dashboard/product-analytics.tsx`). Recordings mask inputs and anything inside a `ph-mask` element: visitors' conversations, insights, emails. |
 | `ALLOW_PRIVATE_URLS` | Development only. Lets actions and imports reach localhost. |
 
 ## Layout
