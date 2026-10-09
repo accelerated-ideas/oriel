@@ -20,7 +20,7 @@ export async function isGoogleSignInEnabled() {
       signal: AbortSignal.timeout(5000),
     });
     if (!response.ok) {
-      console.error("Couldn't read Supabase Auth settings", response.status);
+      console.error("Couldn't read Supabase Auth settings", response.status, (await response.text()).slice(0, 300));
       return false;
     }
     const settings = (await response.json()) as { external?: Record<string, boolean> };
