@@ -16,6 +16,7 @@ import {
   type PlanChangeResult,
 } from "@/lib/billing/stripe-billing";
 import type { ActionResult } from "@/lib/types";
+import { reportError } from "@/lib/notify";
 
 const choosePlanSchema = z.object({
   organizationId: z.string().uuid(),
@@ -43,7 +44,7 @@ export async function actionPreviewPlanChange(input: z.input<typeof choosePlanSc
     if (!hasLiveSubscription(access.workspace)) return { ok: false, error: "This workspace has no plan to change." };
     return { ok: true, data: { preview: await previewPlanChange(access.workspace, data) } };
   } catch (error) {
-    console.error("actionPreviewPlanChange", error);
+    await reportError("actionPreviewPlanChange", error, { workspace: input.organizationId });
     return { ok: false, error: error instanceof z.ZodError ? error.issues[0].message : "Couldn't reach Stripe. Try again." };
   }
 }
@@ -70,7 +71,7 @@ export async function actionChoosePlan(
     if (error instanceof PaymentFailedError) {
       return { ok: false, error: `${error.message} Your plan didn't change. Update your card under Invoices and payment, then try again.` };
     }
-    console.error("actionChoosePlan", error);
+    await reportError("actionChoosePlan", error, { workspace: input.organizationId });
     return { ok: false, error: error instanceof z.ZodError ? error.issues[0].message : "Couldn't reach Stripe. Try again." };
   }
 }
@@ -81,7 +82,7 @@ export async function actionOpenBillingPortal(input: { organizationId: string })
     if (!access.ok) return access;
     return { ok: true, data: { url: await createPortalUrl(access.workspace, access.user.email ?? "") } };
   } catch (error) {
-    console.error("actionOpenBillingPortal", error);
+    await reportError("actionOpenBillingPortal", error, { workspace: input.organizationId });
     return { ok: false, error: "Couldn't open Stripe. Try again." };
   }
 }

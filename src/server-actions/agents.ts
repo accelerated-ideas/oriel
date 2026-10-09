@@ -14,6 +14,7 @@ import { DEFAULT_VOICE_ID, LANGUAGE_OPTIONS, VOICE_OPTIONS } from "@/config/voic
 import { startImport, wakeWorker } from "@/lib/knowledge/queue";
 import { errorMessage, normalizeOrigin } from "@/lib/utils";
 import type { ActionResult } from "@/lib/types";
+import { reportError } from "@/lib/notify";
 
 const createSchema = z.object({
   organizationId: z.string().uuid(),
@@ -64,7 +65,7 @@ export async function actionCreateAgent(input: z.input<typeof createSchema>): Pr
     revalidatePath(`/account/${data.organizationId}/agents`);
     return { ok: true, data: { id: agent.id } };
   } catch (error) {
-    console.error("actionCreateAgent", error);
+    await reportError("actionCreateAgent", error, { workspace: input.organizationId });
     return { ok: false, error: error instanceof z.ZodError ? error.issues[0].message : "Couldn't create the assistant." };
   }
 }
@@ -159,7 +160,7 @@ export async function actionUpdateAgent(agentId: string, patch: z.input<typeof u
     revalidatePath(`/account/${access.agent.organization_id}/agents`, "layout");
     return { ok: true };
   } catch (error) {
-    console.error("actionUpdateAgent", error);
+    await reportError("actionUpdateAgent", error, { agent: agentId });
     return { ok: false, error: error instanceof z.ZodError ? error.issues[0].message : "Couldn't save changes." };
   }
 }

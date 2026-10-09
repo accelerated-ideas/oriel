@@ -283,6 +283,7 @@ Calls only need `ELEVENLABS_API_KEY`, with Text to Speech and Speech to Text acc
 | `SLACK_`, `SALESFORCE_`, `HUBSPOT_`, `CALENDLY_` + `CLIENT_ID`, `CLIENT_SECRET` | Optional. OAuth apps for those integrations (see "Integrations"). |
 | `PLATFORM_ADMIN_EMAILS` | Comma-separated emails that can open `/admin/costs`. |
 | `CRON_SECRET` | Protects the cron routes, `/api/knowledge/worker` and `/api/billing/refill` (Vercel Cron sends it). Without it, a key derived from `WIDGET_SESSION_SECRET` is used, which Vercel Cron can't send. |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Optional. Telegram alerts for the team: sign-ups, subscriptions, cancellations, and errors in server actions, webhooks, crons and pages (`src/lib/notify.ts`, `src/instrumentation.ts`, `src/app/error.tsx`). Messages carry ids, never emails. |
 | `KNOWLEDGE_BROWSER`, `BROWSER_WS_ENDPOINT`, `CHROMIUM_PATH` | Where pages built in the browser are rendered (see "Knowledge"). |
 | `NEXT_PUBLIC_APP_ASSISTANT_ID`, `APP_ASSISTANT_WORKSPACE_ID` | The dashboard's help assistant (`npm run app-assistant` prints the ID). Optional. |
 | `KNOWLEDGE_AUTO_REFRESH_DAYS` | Self-hosted. How often website pages are re-read automatically (default 7, 0 turns it off). |

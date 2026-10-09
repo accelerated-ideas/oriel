@@ -10,6 +10,7 @@ import { updateConfig } from "@/lib/integrations/store";
 import { BUILTIN_TOOL_NAMES } from "@/lib/runtime/tools";
 import { errorMessage } from "@/lib/utils";
 import type { ActionResult } from "@/lib/types";
+import { reportError } from "@/lib/notify";
 
 function actionsPath(organizationId: string, agentId: string) {
   return `/account/${organizationId}/agents/${agentId}/actions`;
@@ -126,7 +127,7 @@ export async function actionSaveAction(agentId: string, input: z.input<typeof ac
     revalidatePath(actionsPath(access.agent.organization_id, agentId));
     return { ok: true };
   } catch (error) {
-    console.error("actionSaveAction", error);
+    await reportError("actionSaveAction", error, { agent: agentId });
     return { ok: false, error: error instanceof z.ZodError ? error.issues[0].message : "Couldn't save the action." };
   }
 }
@@ -199,7 +200,7 @@ export async function actionConnectStripe(agentId: string, secretKey: string): P
     revalidatePath(actionsPath(access.agent.organization_id, agentId));
     return { ok: true };
   } catch (error) {
-    console.error("actionConnectStripe", error);
+    await reportError("actionConnectStripe", error, { agent: agentId });
     return { ok: false, error: "Couldn't connect Stripe." };
   }
 }

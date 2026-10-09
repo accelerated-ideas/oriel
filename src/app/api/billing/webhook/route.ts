@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import type Stripe from "stripe";
 import { grantInvoiceCredits } from "@/lib/billing/credits";
 import { billingConfigured, syncSubscription } from "@/lib/billing/stripe-billing";
+import { reportError } from "@/lib/notify";
 import { platformStripe } from "@/lib/stripe-platform";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +23,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
+  try {
+    await handle(event);
+  } catch (error) {
+    // Stripe retries a failed delivery, so the webhook tries again later.
+    await reportError(`Stripe webhook ${event.type}`, error, { event: event.id });
+    return NextResponse.json({ error: "Couldn't handle the event" }, { status: 500 });
+  }
+  return NextResponse.json({ received: true });
+}
+
+async function handle(event: Stripe.Event) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object;
@@ -40,5 +52,4 @@ export async function POST(request: NextRequest) {
       await grantInvoiceCredits(event.data.object);
       break;
   }
-  return NextResponse.json({ received: true });
 }

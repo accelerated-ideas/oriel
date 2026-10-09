@@ -18,6 +18,7 @@ import {
 import { assertPublicUrl } from "@/lib/actions/ssrf";
 import { errorMessage } from "@/lib/utils";
 import type { ActionResult } from "@/lib/types";
+import { reportError } from "@/lib/notify";
 
 // Adding knowledge queues background work (src/lib/knowledge/worker.ts); the
 // Knowledge page shows progress as it happens.
@@ -75,7 +76,7 @@ export async function actionFindPages(input: z.input<typeof findSchema>): Promis
     revalidatePath(knowledgePath(access.agent.organization_id, data.agentId));
     return { ok: true };
   } catch (error) {
-    console.error("actionFindPages", error);
+    await reportError("actionFindPages", error, { agent: input.agentId });
     return { ok: false, error: error instanceof z.ZodError ? error.issues[0].message : "Couldn't start finding pages." };
   }
 }
@@ -109,7 +110,7 @@ export async function actionAddPage(input: { agentId: string; url: string }): Pr
     revalidatePath(knowledgePath(access.agent.organization_id, input.agentId));
     return { ok: true };
   } catch (error) {
-    console.error("actionAddPage", error);
+    await reportError("actionAddPage", error, { agent: input.agentId });
     return { ok: false, error: "Couldn't add that page." };
   }
 }
@@ -195,7 +196,7 @@ export async function actionAddFoundPages(input: {
     revalidatePath(knowledgePath(access.agent.organization_id, input.agentId));
     return { ok: true, data: { added } };
   } catch (error) {
-    console.error("actionAddFoundPages", error);
+    await reportError("actionAddFoundPages", error, { agent: input.agentId });
     return { ok: false, error: "Couldn't add those pages." };
   }
 }
@@ -295,7 +296,7 @@ export async function actionSaveTextSource(input: z.input<typeof textSchema>): P
     revalidatePath(knowledgePath(access.agent.organization_id, data.agentId));
     return { ok: true };
   } catch (error) {
-    console.error("actionSaveTextSource", error);
+    await reportError("actionSaveTextSource", error, { agent: input.agentId });
     return { ok: false, error: error instanceof z.ZodError ? error.issues[0].message : "Couldn't save the note." };
   }
 }

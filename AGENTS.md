@@ -19,6 +19,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Database access is server-side through `supabaseAdmin`, after `authorizeOrg`/`authorizeAgent` checks. New tables need RLS enabled with no policies.
 - UI copy: no eyebrow labels, step numbers or filler captions. Write with sentence case and plain words.
 - Before finishing: `npm run typecheck && npm run lint && npm run build`.
+- Alerts go to Telegram through `src/lib/notify.ts`: `reportError` in catch blocks for unexpected failures (not a customer's bad input), `notifyEvent` for important events. Uncaught server errors are reported by `src/instrumentation.ts`, browser ones by `src/app/error.tsx`. Never put emails, names or message content in them, only ids and what happened.
 - Any new paid model call must be recorded with `recordUsage` (`src/lib/usage/record.ts`), and its price added to `src/lib/usage/pricing.ts`. Customers never see costs, only counts.
 - Two editions (`src/config/edition.ts`): self-hosted (default, no plans or limits) and cloud. Anything about plans, limits or billing must be a no-op when self-hosted.
 - The whole repo is public under AGPL-3.0, including the hosted edition's billing and the marketing site (`src/app/(web)`, `src/components/web`, used only by the cloud edition). Never commit secrets, customer data or links to assets on other products' servers; keys belong in `.env.local`, small static files in `public/`.

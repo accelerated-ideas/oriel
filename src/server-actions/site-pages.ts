@@ -11,6 +11,7 @@ import { cleanLink, SITE_MAP_MAX_PAGES } from "@/lib/site-map/pages";
 import { embedSitePages, siteMapSize } from "@/lib/site-map/search";
 import type { ActionResult } from "@/lib/types";
 import { errorMessage } from "@/lib/utils";
+import { reportError } from "@/lib/notify";
 
 const LINK_HINT = "Use a path like /settings/billing or a full URL";
 
@@ -66,7 +67,7 @@ export async function actionSavePage(agentId: string, input: z.input<typeof page
     revalidatePath(sitePath(agentId, access.agent.organization_id));
     return { ok: true };
   } catch (error) {
-    console.error("actionSavePage", error);
+    await reportError("actionSavePage", error, { agent: agentId });
     return { ok: false, error: error instanceof z.ZodError ? error.issues[0].message : "Couldn't save the page." };
   }
 }
@@ -125,7 +126,7 @@ export async function actionImportPages(
     revalidatePath(sitePath(agentId, access.agent.organization_id));
     return { ok: true, data: { added: rows.length, existing } };
   } catch (error) {
-    console.error("actionImportPages", error);
+    await reportError("actionImportPages", error, { agent: agentId });
     return { ok: false, error: error instanceof z.ZodError ? error.issues[0].message : "Couldn't add the pages." };
   }
 }

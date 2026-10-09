@@ -1,5 +1,5 @@
 import { after, NextResponse, type NextRequest } from "next/server";
-import { sendWelcomeEmailOnce } from "@/lib/emails/welcome";
+import { welcomeNewUser } from "@/lib/emails/welcome";
 import { supabaseServer } from "@/lib/supabase/server";
 import { safeNextPath } from "@/lib/utils";
 
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     console.error("Google sign-in failed", error);
     return backToSignIn("google_failed");
   }
-  // Someone new gets the welcome email, once.
-  after(() => sendWelcomeEmailOnce(data.user));
+  // Someone new is welcomed, once.
+  after(() => welcomeNewUser(data.user, "Google"));
   return NextResponse.redirect(new URL(next, url.origin));
 }

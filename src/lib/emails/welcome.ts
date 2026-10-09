@@ -3,6 +3,7 @@ import { appUrl, BRAND } from "@/config/brand";
 import { IS_CLOUD } from "@/config/edition";
 import { getPlan, TRIAL_PLAN_ID } from "@/config/plans";
 import { emailConfigured, sendEmail } from "@/lib/email";
+import { notify, notifyEvent } from "@/lib/notify";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { button, checkList, emailTextFromHtml, heading, paragraph, renderEmailLayout, signature, subheading } from "./template";
 
@@ -38,11 +39,10 @@ export function renderWelcomeEmail() {
   return { subject, html, text: emailTextFromHtml(html) };
 }
 
-// Once per person, the first time they sign in (hosted edition only). The
-// claim comes first, so two sign-ins at once send one email; a failed send
-// lets the next sign-in try again.
-export async function sendWelcomeEmailOnce(user: { id: string; email?: string | null }) {
-  if (!IS_CLOUD || !user.email || !emailConfigured()) return;
+// Once per person, the first time they sign in: tells the team's Telegram
+// about the sign-up, then sends the welcome email (hosted edition). The claim
+// comes first, so two sign-ins at once count once.
+export async function welcomeNewUser(user: { id: string; email?: string | null }, via: "email code" | "Google") {
   const { data: claimed } = await supabaseAdmin
     .from("users")
     .update({ welcome_email_sent_at: new Date().toISOString() })
@@ -51,9 +51,11 @@ export async function sendWelcomeEmailOnce(user: { id: string; email?: string | 
     .select("id")
     .maybeSingle();
   if (!claimed) return;
+  await notifyEvent(`🎉 New user signed up with ${via}`, { user: user.id });
 
+  if (!IS_CLOUD || !user.email || !emailConfigured()) return;
   const { subject, html, text } = renderWelcomeEmail();
   if (!(await sendEmail({ to: user.email, subject, html, text }))) {
-    await supabaseAdmin.from("users").update({ welcome_email_sent_at: null }).eq("id", user.id);
+    await notify(`⚠️ The welcome email couldn't be sent (user ${user.id})`);
   }
 }

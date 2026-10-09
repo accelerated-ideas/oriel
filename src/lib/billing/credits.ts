@@ -3,6 +3,7 @@ import { after } from "next/server";
 import type Stripe from "stripe";
 import { getPlan, getPlanByStripePriceId, type SubscriptionPlan } from "@/config/plans";
 import { sendSubscribedEmail } from "@/lib/emails/subscribed";
+import { notify, notifyEvent, reportError } from "@/lib/notify";
 import { platformStripe } from "@/lib/stripe-platform";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getWorkspaceBilling } from "./limits";
@@ -74,6 +75,7 @@ export async function grantInvoiceCredits(invoice: Stripe.Invoice, subscription?
   const plan = item ? getPlanByStripePriceId(item.price.id) : null;
   if (!organizationId || !item || !plan) {
     console.error("Paid invoice without a workspace or a known plan", invoice.id, item?.price.id);
+    await notify(`⚠️ A paid invoice has no workspace or a price that isn't a plan (invoice ${invoice.id}, price ${item?.price.id})`);
     return;
   }
   const workspace = await getWorkspaceBilling(organizationId);
@@ -103,10 +105,17 @@ export async function grantInvoiceCredits(invoice: Stripe.Invoice, subscription?
   });
   if (error) throw error;
 
-  if (granted === true && invoice.billing_reason === "subscription_create" && invoice.customer_email) {
+  if (granted !== true) return;
+  const period = plan.stripe_config.annual_price_id === item.price.id ? "annual" : "monthly";
+  const ids = { workspace: workspace.id, plan: `${plan.id} ${period}` };
+  if (invoice.billing_reason === "subscription_create") {
+    after(() => notifyEvent("❤️ Good news! New subscription", ids));
     const to = invoice.customer_email;
-    const period = plan.stripe_config.annual_price_id === item.price.id ? "annual" : "monthly";
-    after(() => sendSubscribedEmail(to, { plan, period, workspace: { id: workspace.id, name: workspace.name } }));
+    if (to) after(() => sendSubscribedEmail(to, { plan, period, workspace: { id: workspace.id, name: workspace.name } }));
+  } else if (invoice.billing_reason === "subscription_cycle") {
+    after(() => notifyEvent("❤️ Good news! Subscription renewed", ids));
+  } else {
+    after(() => notifyEvent("⬆️ Plan changed, charged now", ids));
   }
 }
 
@@ -147,7 +156,7 @@ export async function refillMonthlyCredits(now = new Date()) {
       p_renew_at: month.end.toISOString(),
     });
     if (grantError) {
-      console.error("Monthly refill failed", workspace.id, grantError);
+      await reportError("Monthly message refill", grantError, { workspace: workspace.id });
     } else if (granted === true) {
       refilled++;
     } else {

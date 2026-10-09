@@ -1,4 +1,5 @@
 "use server";
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { authorizeOrg } from "@/lib/auth/access";
@@ -9,13 +10,14 @@ import { sendEmail } from "@/lib/email";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { findInvitation, invitationEmail, invitationLink, isExpired } from "@/lib/workspaces/invitations";
 import type { ActionResult } from "@/lib/types";
+import { reportError } from "@/lib/notify";
 
 const uuid = z.string().uuid();
 const workspaceName = z.string().trim().min(1, "Give it a name").max(60, "Keep the name under 60 characters");
 
 const failure = (scope: string, error: unknown, message: string): { ok: false; error: string } => {
   if (error instanceof z.ZodError) return { ok: false, error: error.issues[0].message };
-  console.error(scope, error);
+  after(() => reportError(scope, error));
   return { ok: false, error: message };
 };
 

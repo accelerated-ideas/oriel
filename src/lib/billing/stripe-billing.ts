@@ -1,9 +1,11 @@
 import "server-only";
+import { after } from "next/server";
 import type Stripe from "stripe";
 import { appUrl } from "@/config/brand";
 import { IS_CLOUD } from "@/config/edition";
 import { getPlan, getPlanByStripePriceId, planChangeTiming, type BillingPeriod, type SubscriptionPlan } from "@/config/plans";
 import { platformStripe } from "@/lib/stripe-platform";
+import { notify, notifyEvent } from "@/lib/notify";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { grantInvoiceCredits, planChangeCredits, workspaceIdFor } from "./credits";
 import { planState, type WorkspaceBilling } from "./plan-state";
@@ -236,12 +238,13 @@ export async function syncSubscription(subscription: Stripe.Subscription) {
   const organizationId = await workspaceIdFor(subscription);
   if (!organizationId) {
     console.error("Stripe subscription without a workspace", subscription.id);
+    await notify(`⚠️ A Stripe subscription has no workspace (subscription ${subscription.id})`);
     return;
   }
 
   const { data: current } = await supabaseAdmin
     .from("organizations")
-    .select("stripe_subscription_id, subscription_status")
+    .select("stripe_subscription_id, subscription_status, cancel_at_period_end, scheduled_plan_id")
     .eq("id", organizationId)
     .maybeSingle();
   if (!current) return;
@@ -258,7 +261,10 @@ export async function syncSubscription(subscription: Stripe.Subscription) {
 
   const item = subscription.items.data[0];
   const target = item ? planForPrice(item.price.id) : null;
-  if (!target) console.error("Stripe price isn't in subscription-plans.ts", item?.price.id);
+  if (!target) {
+    console.error("Stripe price isn't in subscription-plans.ts", item?.price.id);
+    await notify(`⚠️ A subscription's price isn't in subscription-plans.ts (subscription ${subscription.id}, price ${item?.price.id})`);
+  }
   const periodEnd = subscription.cancel_at ?? item?.current_period_end ?? null;
   const next = live.includes(subscription.status) ? await scheduledChange(subscription) : null;
   const customerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
@@ -277,6 +283,22 @@ export async function syncSubscription(subscription: Stripe.Subscription) {
       scheduled_change_at: next?.at.toISOString() ?? null,
     })
     .eq("id", organizationId);
+
+  // Tell the team what changed: a cancellation, its end, a scheduled downgrade.
+  if (current.stripe_subscription_id !== subscription.id) return;
+  const cancelling = subscription.cancel_at_period_end || Boolean(subscription.cancel_at);
+  const ids = { workspace: organizationId, plan: target ? `${target.plan.id} ${target.period}` : null };
+  const day = (time: Date) => time.toISOString().slice(0, 10);
+  if (live.includes(current.subscription_status ?? "") && !live.includes(subscription.status)) {
+    after(() => notifyEvent("💔 Subscription ended", ids));
+  } else if (live.includes(subscription.status) && cancelling !== current.cancel_at_period_end) {
+    after(() =>
+      notifyEvent(cancelling ? `🥀 Subscription cancelled, ends ${periodEnd ? day(new Date(periodEnd * 1000)) : "at period end"}` : "↩️ Cancellation undone", ids),
+    );
+  }
+  if (next && next.plan.id !== current.scheduled_plan_id) {
+    after(() => notifyEvent(`⬇️ Switches to ${next.plan.id} ${next.period} on ${day(next.at)}`, ids));
+  }
 }
 
 // Right after Checkout, so the plan and its messages show without waiting for
