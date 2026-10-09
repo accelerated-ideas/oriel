@@ -5,17 +5,20 @@ export function emailConfigured() {
   return Boolean(process.env.RESEND_API_KEY);
 }
 
-// Plain-text email through Resend. Returns false when email isn't set up or
-// sending failed, so callers can fall back (e.g. show a link to copy).
+// Email through Resend: plain text, and HTML when given (src/lib/emails).
+// Returns false when email isn't set up or sending failed, so callers can
+// fall back (e.g. show a link to copy).
 export async function sendEmail({
   to,
   subject,
   text,
+  html,
   replyTo,
 }: {
   to: string;
   subject: string;
   text: string;
+  html?: string;
   replyTo?: string;
 }) {
   if (!emailConfigured()) return false;
@@ -29,6 +32,7 @@ export async function sendEmail({
         ...(replyTo ? { reply_to: replyTo } : {}),
         subject,
         text,
+        ...(html ? { html } : {}),
       }),
       signal: AbortSignal.timeout(8000),
     });

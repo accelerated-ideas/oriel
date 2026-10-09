@@ -160,6 +160,9 @@ A self-hosted install serves the dashboard at `/`; the marketing site (`src/app/
   - **Admin:** can also invite people, rename the workspace and manage billing.
   - **Member:** builds and runs assistants.
   - Invitation links work for 14 days. They're emailed through Resend when it's set up; either way the link can be copied from the Members page. Someone who already has an account sees their invitations on the dashboard home.
+- **Emails (cloud):** through Resend, in the landing page's style (`src/lib/emails/template.ts`; the wordmark is `public/email/wordmark.png`, loaded from `BRAND.siteUrl`).
+  - **Welcome:** once per person, right after their first sign-in (`users.welcome_email_sent_at`).
+  - **Subscribed:** when a workspace's first invoice is paid, to the email on the Stripe customer.
 - **Plans (cloud):** prices, limits and Stripe product/price IDs (per environment) live in `src/config/subscription-plans.ts`. The landing page and the Billing page read them through `src/config/plans.ts`. Fill in the Stripe IDs after creating the products in Stripe.
 - **Limits (cloud)** are in `src/lib/billing/limits.ts`:
   - **Assistants and seats:** checked when creating an assistant or inviting someone. Pending invitations count as seats.
@@ -264,7 +267,7 @@ Calls only need `ELEVENLABS_API_KEY`, with Text to Speech and Speech to Text acc
 | `WIDGET_SESSION_SECRET`, `ENCRYPTION_KEY` | 32+ random characters each. Changing `ENCRYPTION_KEY` makes stored integration keys, tokens and header values unreadable. |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Optional. Rate limits fall back to in-memory without them. |
 | `NEXT_PUBLIC_EDITION` | `cloud` for the hosted service (plans, billing, marketing site). Unset for self-hosted. |
-| `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Optional. Sends follow-up emails and invitations. |
+| `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Optional. Sends follow-up emails and invitations, and in the cloud edition the welcome and subscription emails (`src/lib/emails`). |
 | `STRIPE_SECRET_KEY` | Your Stripe account: billing (cloud) and the platform side of "Connect with Stripe". |
 | `STRIPE_BILLING_WEBHOOK_SECRET` | Cloud. Signing secret of the `/api/billing/webhook` endpoint. |
 | `STRIPE_APP_INSTALL_URL`, `STRIPE_APP_SECRET_KEY`, `STRIPE_APP_SANDBOX_INSTALL_URL`, `STRIPE_APP_SANDBOX_SECRET_KEY` | Optional. "Connect with Stripe" for customers, through your Stripe App (see "Integrations"). |

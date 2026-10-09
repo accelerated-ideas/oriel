@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft } from "lucide-react";
 import { supabaseClient } from "@/lib/supabase/client";
+import { actionSignedIn } from "@/server-actions/auth";
 import { IS_CLOUD } from "@/config/edition";
 import { GoogleMark } from "@/components/brand/google-mark";
 import { Button } from "@/components/ui/button";
@@ -107,6 +108,7 @@ export function AuthForm({
       requestAnimationFrame(() => codeRef.current?.focus());
       return;
     }
+    await actionSignedIn().catch(() => undefined);
     router.replace(next);
     router.refresh();
   }

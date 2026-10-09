@@ -1,7 +1,17 @@
 "use server";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
+import { getUser } from "@/lib/auth/get-user";
+import { sendWelcomeEmailOnce } from "@/lib/emails/welcome";
 import { supabaseServer } from "@/lib/supabase/server";
 import { safeNextPath } from "@/lib/utils";
+
+// Right after signing in with a code: welcomes someone new, once. Sent after
+// the response, so it never slows the way in.
+export async function actionSignedIn() {
+  const user = await getUser();
+  if (user) after(() => sendWelcomeEmailOnce(user));
+}
 
 // Signs out. With `next` (and `email`) in the form, goes back to sign-in set
 // up to continue there, e.g. to accept an invitation as someone else.
