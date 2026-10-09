@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { EASE_OUT } from "./motion";
 import { NAV_LINKS } from "./nav-links";
-import { REPO_HREF, REPO_URL } from "./repo";
+import { REPO_HREF, REPO_LINK_PROPS, REPO_URL } from "./repo";
 
 // A full-width bar at the top of the page that tucks into a floating capsule
 // once you scroll, and marks the page you're on, like Pricing.
@@ -96,6 +96,7 @@ export function SiteNav() {
           <a
             href={REPO_HREF}
             onClick={REPO_URL ? undefined : (event) => go(event, REPO_HREF)}
+            {...REPO_LINK_PROPS}
             aria-label={REPO_URL ? "Source code on GitHub" : "Open source, code coming soon to GitHub"}
             title={REPO_URL ? "GitHub" : "Source code coming soon"}
             className="hidden size-10 place-items-center rounded-full text-ink-2 transition-colors duration-150 hover:bg-ink/[0.06] hover:text-ink md:grid"
@@ -163,6 +164,7 @@ export function SiteNav() {
               <a
                 href={REPO_HREF}
                 onClick={REPO_URL ? undefined : (event) => go(event, REPO_HREF)}
+                {...REPO_LINK_PROPS}
                 className="flex items-center gap-2 text-[16px] text-ink-2 transition-colors hover:text-ink"
               >
                 <GitHubMark className="size-[17px]" />

@@ -6,7 +6,7 @@ import { GitHubMark } from "@/components/brand/github-mark";
 import { Button } from "@/components/ui/button";
 import { Backdrop } from "./backdrop";
 import { Reveal, usePrefersReducedMotion } from "./motion";
-import { REPO_URL } from "./repo";
+import { REPO_LINK_PROPS, REPO_URL } from "./repo";
 
 const POINTS = [
   "Every feature, with no plans or message limits",
@@ -69,7 +69,7 @@ export function OpenSource() {
                 variant="outline"
                 className="h-12 rounded-full px-6 text-[15px] shadow-none"
               >
-                <a href={REPO_URL}>
+                <a href={REPO_URL} {...REPO_LINK_PROPS}>
                   <GitHubMark className="size-[18px]" />
                   View on GitHub
                   <ArrowRight />

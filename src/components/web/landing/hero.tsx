@@ -7,7 +7,7 @@ import { GitHubMark } from "@/components/brand/github-mark";
 import { Button } from "@/components/ui/button";
 import { EASE_OUT } from "./motion";
 import { HeroFilm } from "./hero-film";
-import { REPO_HREF } from "./repo";
+import { REPO_HREF, REPO_LINK_PROPS } from "./repo";
 
 const LINES = ["Talk every user", "through it."];
 
@@ -51,7 +51,7 @@ export function Hero() {
               <Link href="/auth">Start free trial</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="h-12 rounded-full px-5 text-[15px]">
-              <a href={REPO_HREF}>
+              <a href={REPO_HREF} {...REPO_LINK_PROPS}>
                 <GitHubMark className="size-[18px]" />
                 Open source
                 <ArrowRight />

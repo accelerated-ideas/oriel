@@ -4,7 +4,7 @@ import { GitHubMark } from "@/components/brand/github-mark";
 import { CookieSettingsButton } from "@/components/web/consent/consent-banner";
 import { Logo } from "@/components/dashboard/logo";
 import { FOOTER_LINKS } from "./nav-links";
-import { REPO_HREF } from "./repo";
+import { REPO_HREF, REPO_LINK_PROPS } from "./repo";
 
 const LINK = "transition-colors hover:text-ink";
 
@@ -15,7 +15,7 @@ export function SiteFooter() {
         <Logo />
         <nav className="flex flex-wrap items-center gap-x-6 gap-y-2">
           {FOOTER_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className={LINK}>
+            <Link key={link.href} href={link.href} className={LINK} {...("external" in link && link.external && REPO_LINK_PROPS)}>
               {link.label}
             </Link>
           ))}
@@ -36,7 +36,7 @@ export function SiteFooter() {
             Privacy
           </Link>
           <CookieSettingsButton className={LINK} />
-          <a href={REPO_HREF} className={`flex items-center gap-1.5 ${LINK}`}>
+          <a href={REPO_HREF} className={`flex items-center gap-1.5 ${LINK}`} {...REPO_LINK_PROPS}>
             <GitHubMark className="size-4" />
             GitHub
           </a>

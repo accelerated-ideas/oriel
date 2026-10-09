@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { Check } from "lucide-react";
 import { BRAND } from "@/config/brand";
+import { REPO_LINK_PROPS } from "./repo";
 import { GitHubMark } from "@/components/brand/github-mark";
 import { publicPlans, subscriptionPlans, TRIAL_PLAN_ID, type BillingPeriod } from "@/config/plans";
 import { Button } from "@/components/ui/button";
@@ -125,7 +126,7 @@ export function Pricing() {
             </div>
             {BRAND.repoUrl ? (
               <Button asChild size="lg" variant="outline" className="h-12 shrink-0 rounded-full px-6">
-                <a href={BRAND.repoUrl}>
+                <a href={BRAND.repoUrl} {...REPO_LINK_PROPS}>
                   <GitHubMark className="size-[18px]" />
                   View the source
                 </a>

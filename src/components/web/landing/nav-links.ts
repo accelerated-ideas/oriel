@@ -1,10 +1,12 @@
+import { REPO_HREF, REPO_URL } from "./repo";
+
 // Shared by the header (a client component) and the footer (server-rendered).
 // Sections of the landing page start with "/#", so they work from any page.
-// Footer-only links don't show in the header.
+// Footer-only links don't show in the header; external ones open in a new tab.
 const LINKS = [
   { href: "/#features", label: "Features" },
   { href: "/#how-it-works", label: "How it works" },
-  { href: "/#open-source", label: "Open source", footerOnly: true },
+  { href: REPO_HREF, label: "Open source", footerOnly: true, external: Boolean(REPO_URL) },
   { href: "/pricing", label: "Pricing" },
   { href: "/#faq", label: "FAQ" },
 ];

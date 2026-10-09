@@ -4,3 +4,5 @@ import { BRAND } from "@/config/brand";
 // source section instead, which says the code is coming soon.
 export const REPO_URL: string | null = BRAND.repoUrl || null;
 export const REPO_HREF = REPO_URL ?? "/#open-source";
+// GitHub opens in a new tab, so the site stays open behind it.
+export const REPO_LINK_PROPS = REPO_URL ? { target: "_blank", rel: "noopener" } : {};
