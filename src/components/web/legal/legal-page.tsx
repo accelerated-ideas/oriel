@@ -1,16 +1,14 @@
-// A long legal document: title, date, a plain-words summary, then sections
+// A long legal document: title, date, then sections
 // with a contents list that stays in view on wide screens.
 export type LegalSection = { id: string; title: string; body: React.ReactNode };
 
 export function LegalPage({
   title,
   updated,
-  summary,
   sections,
 }: {
   title: string;
   updated: string;
-  summary: React.ReactNode;
   sections: LegalSection[];
 }) {
   return (
@@ -18,9 +16,6 @@ export function LegalPage({
       <header className="max-w-[820px]">
         <h1 className="headline text-[48px] leading-[0.95] font-semibold tracking-[-0.045em] text-balance sm:text-[76px]">{title}</h1>
         <p className="mt-6 text-[15px] text-muted">Last updated {updated}</p>
-        <div className="mt-8 max-w-[720px] rounded-[22px] bg-surface p-6 text-[16.5px] leading-relaxed text-pretty text-ink-2 shadow-border sm:p-8 [&_p+p]:mt-3">
-          {summary}
-        </div>
       </header>
 
       <div className="mt-16 grid grid-cols-1 gap-12 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-20">

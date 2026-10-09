@@ -4,9 +4,17 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { X } from "lucide-react";
 import { ANALYTICS_ENABLED } from "@/config/analytics";
+import { BRAND } from "@/config/brand";
+import { IS_CLOUD } from "@/config/edition";
 import { cn } from "@/lib/utils";
-import { EASE_OUT } from "../landing/motion";
-import { closeSettings, hasStoredChoice, openSettings, setChoice } from "./consent-store";
+import {
+  closeSettings,
+  hasStoredChoice,
+  openSettings,
+  setChoice,
+} from "./consent-store";
+
+const EASE_OUT = [0.2, 0, 0, 1] as const;
 import { useConsent } from "./use-consent";
 
 // Both answers look the same and sit side by side, so saying no is as easy as
@@ -14,7 +22,19 @@ import { useConsent } from "./use-consent";
 const ANSWER =
   "h-10 rounded-full bg-ink px-4 text-[14.5px] font-medium text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.1)] transition-[background-color,scale] duration-150 ease-out hover:bg-zinc-800 active:scale-[0.97]";
 
-export function ConsentBanner() {
+// Not tied to one analytics tool, so the wording holds if the tool changes.
+// The privacy policy names the tool. On the website nothing runs until they
+// answer; the dashboard also measures without cookies (see analytics.tsx).
+const TEXT = {
+  site: `Cookies help us track how ${BRAND.name} is used, so we can improve it and your experience. They only run if you allow them, and you can change your mind any time from Cookie settings at the bottom of the page.`,
+  dashboard: `Cookies help us track how ${BRAND.name} is used, so we can improve it and your experience. You can change your mind any time from Cookie settings in your account menu.`,
+};
+
+export function ConsentBanner({
+  place = "site",
+}: {
+  place?: keyof typeof TEXT;
+}) {
   const { choice, settingsOpen } = useConsent();
   const show = ANALYTICS_ENABLED && (choice === "unset" || settingsOpen);
   const ref = useRef<HTMLElement>(null);
@@ -22,8 +42,11 @@ export function ConsentBanner() {
   // Opened from "Cookie settings": take focus, and let Escape close it.
   useEffect(() => {
     if (!settingsOpen) return;
-    ref.current?.querySelector<HTMLButtonElement>("button[data-answer]")?.focus();
-    const onKey = (event: KeyboardEvent) => event.key === "Escape" && closeSettings();
+    ref.current
+      ?.querySelector<HTMLButtonElement>("button[data-answer]")
+      ?.focus();
+    const onKey = (event: KeyboardEvent) =>
+      event.key === "Escape" && closeSettings();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [settingsOpen]);
@@ -35,7 +58,9 @@ export function ConsentBanner() {
         ? hasStoredChoice()
           ? "Right now it's off."
           : "It's off, because your browser asks sites not to track you."
-        : null;
+        : place === "dashboard" && choice === "unset"
+          ? "Right now it measures without cookies."
+          : null;
 
   return (
     <AnimatePresence>
@@ -59,20 +84,49 @@ export function ConsentBanner() {
               <X className="size-4" />
             </button>
           )}
-          <p className={cn("text-[16px] font-semibold tracking-[-0.01em]", settingsOpen && "pr-8")}>Can we use analytics cookies?</p>
-          <p className="mt-2 text-[14.5px] leading-relaxed text-pretty text-ink-2">
-            Google Analytics would help us see how people find and use this site. It only runs if you allow it, and you can change
-            your mind any time from Cookie settings at the bottom of the page.{" "}
-            <Link href="/privacy#storage" className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink">
-              Learn more
-            </Link>
+          <p
+            className={cn(
+              "text-[16px] font-semibold tracking-[-0.01em]",
+              settingsOpen && "pr-8",
+            )}
+          >
+            Can we use analytics cookies?{" "}
+            <span aria-hidden className="ml-0.5">
+              🍪
+            </span>
           </p>
-          {settingsOpen && current && <p className="mt-3 text-[13.5px] text-muted">{current}</p>}
+          <p className="mt-2 text-[14.5px] leading-relaxed text-pretty text-ink-2">
+            {TEXT[place]}
+            {IS_CLOUD && (
+              <>
+                {" "}
+                <Link
+                  href="/privacy#storage"
+                  className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink"
+                >
+                  Learn more
+                </Link>
+              </>
+            )}
+          </p>
+          {settingsOpen && current && (
+            <p className="mt-3 text-[13.5px] text-muted">{current}</p>
+          )}
           <div className="mt-4 grid grid-cols-2 gap-2">
-            <button type="button" data-answer onClick={() => setChoice("denied")} className={ANSWER}>
+            <button
+              type="button"
+              data-answer
+              onClick={() => setChoice("denied")}
+              className={ANSWER}
+            >
               Don&apos;t allow
             </button>
-            <button type="button" data-answer onClick={() => setChoice("granted")} className={ANSWER}>
+            <button
+              type="button"
+              data-answer
+              onClick={() => setChoice("granted")}
+              className={ANSWER}
+            >
               Allow
             </button>
           </div>

@@ -7,30 +7,39 @@ import { useConsent } from "./use-consent";
 // gtag, and the per-property switch Google Analytics checks before sending anything.
 type AnalyticsWindow = { gtag?: (...args: unknown[]) => void; [disable: `ga-disable-${string}`]: boolean };
 
-// Google Analytics, loaded only once the visitor allows it. Before that no
-// script, request or cookie reaches Google. Advertising features stay off.
-export function Analytics() {
+// Google Analytics, with advertising features always off.
+//   Website: nothing loads until the visitor allows it. Before that no script,
+//   request or cookie reaches Google.
+//   Dashboard (`cookieless`): until they choose, it runs in Google's consent
+//   mode with storage denied: no cookies, and Google gets cookieless pings it
+//   uses to model visits. Allowing turns cookies on. "Don't allow", or a
+//   Global Privacy Control signal, stops it entirely.
+export function Analytics({ cookieless = false }: { cookieless?: boolean }) {
   const { choice } = useConsent();
   const granted = choice === "granted";
+  const sending = granted || (cookieless && choice === "unset");
 
-  // Changing their mind later: stop sending and remove the cookies.
+  // Choosing, or changing their mind later: switch cookies on or off, or stop
+  // sending and remove the cookies.
   useEffect(() => {
     if (!ANALYTICS_ENABLED || choice === "pending") return;
     const win = window as unknown as AnalyticsWindow;
-    win[`ga-disable-${GA_MEASUREMENT_ID}`] = !granted;
+    win[`ga-disable-${GA_MEASUREMENT_ID}`] = !sending;
     win.gtag?.("consent", "update", { analytics_storage: granted ? "granted" : "denied" });
     if (!granted) removeAnalyticsCookies();
-  }, [choice, granted]);
+  }, [choice, granted, sending]);
 
-  if (!ANALYTICS_ENABLED || !granted) return null;
+  if (!ANALYTICS_ENABLED || !sending) return null;
 
   const id = JSON.stringify(GA_MEASUREMENT_ID);
+  // How it starts on this page; later choices go through "consent update" above.
+  const storage = JSON.stringify(granted ? "granted" : "denied");
   return (
     <>
       <Script id="ga-init" strategy="afterInteractive">
         {`window.dataLayer = window.dataLayer || [];
 window.gtag = function () { window.dataLayer.push(arguments); };
-gtag("consent", "default", { analytics_storage: "granted", ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied" });
+gtag("consent", "default", { analytics_storage: ${storage}, ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied" });
 gtag("js", new Date());
 gtag("config", ${id}, { allow_google_signals: false, allow_ad_personalization_signals: false, cookie_expires: ${ANALYTICS_COOKIE_DAYS * 24 * 60 * 60} });`}
       </Script>

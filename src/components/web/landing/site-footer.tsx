@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LEGAL } from "@/config/legal";
 import { GitHubMark } from "@/components/brand/github-mark";
-import { CookieSettingsButton } from "@/components/web/consent/consent-banner";
+import { CookieSettingsButton } from "@/components/consent/consent-banner";
 import { Logo } from "@/components/dashboard/logo";
 import { FOOTER_LINKS } from "./nav-links";
 import { REPO_HREF, REPO_LINK_PROPS } from "./repo";

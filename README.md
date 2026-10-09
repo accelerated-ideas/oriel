@@ -149,6 +149,8 @@ The whole repository is open source (see "License"), including the hosted servic
 
 A self-hosted install serves the dashboard at `/`; the marketing site (`src/app/(web)`, `src/components/web`) is only used by the cloud edition.
 
+**Search and sharing (cloud):** every page of the marketing site has a title, description and canonical address (`pageMetadata` in `src/components/web/seo.tsx`), and a link preview picture drawn by its `opengraph-image.tsx` (`src/components/web/og/`: the brand, the page's headline and the widget from the launch film's poster). The pages carry structured data (JSON-LD): the company and site on every page, the product with its plans on the landing and pricing pages, their questions, and the legal pages' last update. `robots.txt` and `sitemap.xml` list only the public pages. Everything else (dashboard, sign-in, invitations, the widget's frame) is marked noindex, and a self-hosted install is closed to search entirely. Absolute addresses use `NEXT_PUBLIC_APP_URL`.
+
 ## Workspaces, members and billing
 
 - **Workspaces:** a workspace (`organizations`) owns assistants, members and a plan.
@@ -285,7 +287,7 @@ Calls only need `ELEVENLABS_API_KEY`, with Text to Speech and Speech to Text acc
 | `NEXT_PUBLIC_APP_ASSISTANT_ID`, `APP_ASSISTANT_WORKSPACE_ID` | The dashboard's help assistant (`npm run app-assistant` prints the ID). Optional. |
 | `KNOWLEDGE_AUTO_REFRESH_DAYS` | Self-hosted. How often website pages are re-read automatically (default 7, 0 turns it off). |
 | `NEXT_PUBLIC_DEMO_AGENT_ID` | Optional. A live assistant for the landing page demo bubble. |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Cloud, optional. Google Analytics for the marketing site. It loads only after a visitor allows it in the cookie banner (`src/components/web/consent`); unset, there's no banner. |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Optional. Google Analytics (`src/components/consent`). On the marketing site it loads only after a visitor allows it in the cookie banner. In the dashboard it runs in Google's consent mode without cookies until people choose; "Allow" adds cookies, "Don't allow" or a Global Privacy Control signal stops it. The choice is shared by both and can be changed from Cookie settings (site footer, account menu). Unset, there's no analytics and no banner. |
 | `ALLOW_PRIVATE_URLS` | Development only. Lets actions and imports reach localhost. |
 
 ## Layout

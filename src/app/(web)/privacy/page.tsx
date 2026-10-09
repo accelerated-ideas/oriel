@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ANALYTICS_ENABLED } from "@/config/analytics";
 import { BRAND } from "@/config/brand";
-import { LEGAL } from "@/config/legal";
+import { LEGAL, LEGAL_UPDATED_AT } from "@/config/legal";
 import { LegalPage, type LegalSection } from "@/components/web/legal/legal-page";
+import { JsonLd, pageMetadata, webPage } from "@/components/web/seo";
 
-export const metadata: Metadata = {
-  title: "Privacy policy",
-  description: `What the hosted ${BRAND.name} service collects, why, and who it shares it with.`,
-};
+const DESCRIPTION = `What the hosted ${BRAND.name} service collects, why, and who it shares it with.`;
+
+export const metadata: Metadata = pageMetadata({ title: "Privacy policy", description: DESCRIPTION, path: "/privacy" });
 
 // Written from what the code does: src/app/api/widget/session (what's stored
 // per conversation), src/lib/widget/embed-script.ts (browser storage), the
-// providers in README "Stack", and src/components/web/consent (analytics, only
+// providers in README "Stack", and src/components/consent (analytics, only
 // described once NEXT_PUBLIC_GA_MEASUREMENT_ID is set). Update it when those change.
 const PROVIDERS = [
   { name: "Supabase", use: "Our database, and sign-in" },
@@ -24,7 +24,9 @@ const PROVIDERS = [
   { name: "Resend", use: "Invitation and follow-up emails" },
   { name: "Upstash", use: "Rate limiting, to keep the service from being abused" },
   { name: "Vercel", use: "Hosting the app and website" },
-  ...(ANALYTICS_ENABLED ? [{ name: "Google Analytics", use: "Measuring visits to our website, only if you allow it" }] : []),
+  ...(ANALYTICS_ENABLED
+    ? [{ name: "Google Analytics", use: "Measuring visits to our website if you allow it, and how the dashboard is used, without cookies unless you allow them" }]
+    : []),
 ];
 
 const SECTIONS: LegalSection[] = [
@@ -142,7 +144,9 @@ const SECTIONS: LegalSection[] = [
           <li>to sign you in, bill your plan and send the emails the service needs, like invitations and follow-up requests</li>
           <li>to keep the service secure and protect it from abuse</li>
           <li>to support you, and to understand our costs and fix problems</li>
-          {ANALYTICS_ENABLED && <li>if you allow it, to see how people find and use our website</li>}
+          {ANALYTICS_ENABLED && (
+            <li>to see how people find and use our website (if you allow it) and how the dashboard is used, so we can improve them</li>
+          )}
           <li>to meet our legal obligations, such as keeping tax records</li>
         </ul>
         <p>
@@ -157,9 +161,9 @@ const SECTIONS: LegalSection[] = [
     body: (
       <p>
         Where laws like the GDPR apply, we rely on our contract with you to provide the service, on our legitimate interests to keep
-        it secure and improve it, on legal obligations for records like invoices, and on consent where we ask for it
-        {ANALYTICS_ENABLED && ", such as for analytics on our website"}. For visitors&apos; data, the customer whose site they
-        used decides the legal basis.
+        it secure and improve it{ANALYTICS_ENABLED && ", including measuring how the dashboard is used without cookies"}, on legal
+        obligations for records like invoices, and on consent where we ask for it{ANALYTICS_ENABLED && ", such as for analytics cookies"}.
+        For visitors&apos; data, the customer whose site they used decides the legal basis.
       </p>
     ),
   },
@@ -225,7 +229,7 @@ const SECTIONS: LegalSection[] = [
       <>
         <p>
           {ANALYTICS_ENABLED
-            ? "Our website and dashboard use what they need to work, and analytics only if you allow it. We never use advertising cookies."
+            ? "Our website and dashboard use what they need to work, and analytics cookies only if you allow them. The dashboard also measures how it's used without cookies. We never use advertising cookies."
             : "Our website and dashboard use cookies only to keep you signed in. We don't use analytics or advertising cookies."}
         </p>
         <ul>
@@ -240,18 +244,23 @@ const SECTIONS: LegalSection[] = [
                 so we don&apos;t ask on every page. We ask again after 6 months.
               </li>
               <li>
-                <strong>Google Analytics, only if you allow it:</strong> the cookies <code>_ga</code> and <code>_ga_&hellip;</code>,
-                which count visits and how people move around our website, for up to 13 months. Google doesn&apos;t store your IP
-                address, and its advertising features and Google signals are off.
+                <strong>Google Analytics cookies, only if you allow them:</strong> <code>_ga</code> and <code>_ga_&hellip;</code>,
+                which count visits and how people move around our website and dashboard, for up to 13 months. Google doesn&apos;t
+                store your IP address, and its advertising features and Google signals are off.
+              </li>
+              <li>
+                <strong>Google Analytics without cookies, in the dashboard:</strong> until you choose, the dashboard tells Google
+                Analytics which pages are viewed and what&apos;s clicked, without cookies or any ID stored on your device, so Google
+                can only estimate visits. Choosing Don&apos;t allow stops it.
               </li>
             </>
           )}
         </ul>
         {ANALYTICS_ENABLED && (
           <p>
-            Nothing optional runs until you choose. Change your mind any time with Cookie settings at the bottom of every page of
-            our website; if you turn analytics off, we remove its cookies. If your browser sends a Global Privacy Control signal, we
-            treat it as a no.
+            On our website nothing optional runs until you choose. Change your mind any time with Cookie settings at the bottom of
+            every page of our website or in your account menu in the dashboard; if you turn analytics off, we remove its cookies and
+            stop measuring. If your browser sends a Global Privacy Control signal, we treat it as a no.
           </p>
         )}
         <p>
@@ -325,24 +334,13 @@ const SECTIONS: LegalSection[] = [
 
 export default function PrivacyPage() {
   return (
-    <LegalPage
-      title="Privacy policy"
-      updated={LEGAL.updated}
-      sections={SECTIONS}
-      summary={
-        <>
-          <p>
-            We collect what we need to run {BRAND.name}: your account, what you add to your workspace, and the conversations your
-            visitors have with your assistants, which we handle on your behalf.
-          </p>
-          <p>
-            We don&apos;t record call audio, sell personal data, or use conversations to train AI models.{" "}
-            {ANALYTICS_ENABLED
-              ? "Analytics cookies only run on our website if you allow them, and we never use advertising cookies."
-              : "We don't use analytics or advertising cookies."}
-          </p>
-        </>
-      }
-    />
+    <>
+      <JsonLd graph={[webPage({ path: "/privacy", name: "Privacy policy", description: DESCRIPTION, updated: LEGAL_UPDATED_AT })]} />
+      <LegalPage
+        title="Privacy policy"
+        updated={LEGAL.updated}
+        sections={SECTIONS}
+      />
+    </>
   );
 }

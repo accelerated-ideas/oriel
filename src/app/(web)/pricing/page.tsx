@@ -3,11 +3,12 @@ import { Faq, type Question } from "@/components/web/landing/faq";
 import { FinalCta } from "@/components/web/landing/final-cta";
 import { PlanComparison } from "@/components/web/landing/plan-comparison";
 import { Pricing } from "@/components/web/landing/pricing";
+import { faqPage, JsonLd, pageMetadata, softwareApplication, webPage } from "@/components/web/seo";
+import { publicPlans } from "@/config/plans";
 
-export const metadata: Metadata = {
-  title: "Pricing",
-  description: "Plans for the hosted service, priced by the messages your visitors send. Free and open source to run yourself.",
-};
+const DESCRIPTION = "Plans for the hosted service, priced by the messages your visitors send. Free and open source to run yourself.";
+
+export const metadata: Metadata = pageMetadata({ title: "Pricing", description: DESCRIPTION, path: "/pricing" });
 
 // How billing actually behaves: src/lib/billing (limits and plan state) and src/config/subscription-plans.ts.
 const QUESTIONS: Question[] = [
@@ -40,6 +41,13 @@ const QUESTIONS: Question[] = [
 export default function PricingPage() {
   return (
     <>
+      <JsonLd
+        graph={[
+          webPage({ path: "/pricing", name: "Pricing", description: DESCRIPTION }),
+          softwareApplication(publicPlans),
+          faqPage("/pricing", QUESTIONS),
+        ]}
+      />
       <Pricing />
       <PlanComparison />
       <Faq title="Questions about pricing" questions={QUESTIONS} />

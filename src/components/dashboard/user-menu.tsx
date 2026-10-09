@@ -2,7 +2,9 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ChevronsUpDown, CreditCard, LogOut, PenLine, Plus } from "lucide-react";
+import { Check, ChevronsUpDown, Cookie, CreditCard, LogOut, PenLine, Plus } from "lucide-react";
+import { ANALYTICS_ENABLED } from "@/config/analytics";
+import { openSettings } from "@/components/consent/consent-store";
 import { actionSignOut } from "@/server-actions/auth";
 import { actionCreateWorkspace, actionRenameWorkspace } from "@/server-actions/workspaces";
 import { runAction } from "@/lib/run-action";
@@ -137,6 +139,12 @@ export function UserMenu({ user, organization, role, workspaces, billing, onNavi
           </DropdownMenuItem>
           <DropdownMenuSeparator />
 
+          {ANALYTICS_ENABLED && (
+            // Changing the analytics choice is as easy as making it (see consent-banner.tsx).
+            <DropdownMenuItem onSelect={openSettings}>
+              <Cookie /> Cookie settings
+            </DropdownMenuItem>
+          )}
           {/* Not a <form>: choosing an item closes the menu and unmounts it before
               the browser submits, so the submission would be dropped. */}
           <DropdownMenuItem onSelect={() => startSignOut(() => actionSignOut())}>

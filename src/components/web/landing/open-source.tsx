@@ -117,7 +117,16 @@ function Terminal() {
       >
         {LINES.map((line, index) => (
           <div key={line.command} className="flex min-w-0 gap-3">
-            <span className="shrink-0 text-[#c4b5fd]">$</span>
+            {/* The prompt shows up as its line starts, like a new line in a shell */}
+            <motion.span
+              className="shrink-0 text-[#c4b5fd]"
+              variants={{
+                hidden: { opacity: 0 },
+                shown: { opacity: 1, transition: { duration: 0, delay: starts[index] } },
+              }}
+            >
+              $
+            </motion.span>
             {/* Revealed left to right, like it's being typed */}
             <motion.span
               className="min-w-0 truncate text-white/90"

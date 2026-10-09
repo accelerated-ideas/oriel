@@ -1,16 +1,18 @@
 "use client";
 import { BRAND } from "@/config/brand";
 
-// The visitor's choice about optional cookies on the marketing site. Remembering
-// the choice is strictly necessary, so it needs no consent of its own. It's kept
-// with the date and the version of what we asked, and goes stale after six
-// months or when the question changes, so we ask again.
+// The choice about analytics cookies, shared by the website and the dashboard
+// (same origin, same answer). Remembering the choice is strictly necessary, so
+// it needs no consent of its own. It's kept with the date and the version of
+// what we asked, and goes stale after six months or when the question changes,
+// so we ask again.
 export type Choice = "granted" | "denied";
 type Stored = { analytics: Choice; version: number; at: number };
 
 const KEY = `${BRAND.messagePrefix}:consent`;
 // Bump when what we ask about changes (a new tool, a new purpose).
-const VERSION = 1;
+// 2: the question covers the dashboard too.
+const VERSION = 2;
 const MAX_AGE_MS = 182 * 24 * 60 * 60 * 1000;
 
 const listeners = new Set<() => void>();

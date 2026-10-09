@@ -48,7 +48,7 @@ type Span = readonly [number, number];
 
 // Scenes are drawn at a fixed size, like a screenshot, and scaled to fit, so
 // the composition holds at any width. Small stages get a stacked layout.
-const CANVAS = { wide: { width: 720, height: 500 }, narrow: { width: 380, height: 560 } } as const;
+const CANVAS = { wide: { width: 720, height: 500 }, narrow: { width: 380, height: 612 } } as const;
 const NARROW_BELOW = 540;
 const MAX_SCALE = 1.15;
 
@@ -65,13 +65,15 @@ const BOX = {
     glow: { left: 352, top: 30, size: 440 },
     control: "top-3 left-3",
   },
-  // Stacked: the window on top, the panel below it.
+  // Stacked on phones: the window on top, the panel below it, apart. Notes
+  // and the team's card stay over the window, so the conversation is never
+  // covered: a note hangs from just above the panel.
   narrow: {
-    app: { left: 12, top: 40, width: 560, height: 315 },
-    panel: { left: 22, top: 268, width: 336, height: 284 },
-    note: { left: 40, top: 188, width: 300 },
-    card: { left: 14, top: 50, width: 352 },
-    glow: { left: 10, top: 224, size: 360 },
+    app: { left: 12, top: 38, width: 560, height: 252 },
+    panel: { left: 14, top: 300, width: 352, height: 296 },
+    note: { left: 24, bottom: 612 - 294, width: 332 },
+    card: { left: 14, top: 46, width: 352 },
+    glow: { left: 10, top: 268, size: 360 },
     control: "top-2.5 right-2.5",
   },
 } as const;
@@ -470,8 +472,10 @@ export function FeatureScene({ index, time, layout }: { index: number; time: num
         {frame.note && (
           <motion.div
             key={`${index}-${frame.note.key}`}
-            className="absolute z-30"
-            style={{ left: box.note.left, top: box.note.top, width: box.note.width }}
+            // Tighter on phones, so the page above it stays in view.
+            className="group/note absolute z-30"
+            data-compact={layout === "narrow" || undefined}
+            style={box.note}
             initial={{ opacity: 0, y: 12, scale: 0.97, filter: "blur(4px)" }}
             animate={{ opacity: frame.fade, y: 0, scale: 1, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: 6, scale: 0.98, filter: "blur(3px)" }}
@@ -491,7 +495,7 @@ export function FeatureScene({ index, time, layout }: { index: number; time: num
             className="absolute z-30"
             style={{ left: box.card.left, top: box.card.top, width: box.card.width }}
             // It comes out of the panel, where "Noted feedback" appeared.
-            initial={layout === "wide" ? { opacity: 0, x: 340, y: 170, scale: 0.3 } : { opacity: 0, x: 0, y: 280, scale: 0.4 }}
+            initial={layout === "wide" ? { opacity: 0, x: 340, y: 170, scale: 0.3 } : { opacity: 0, x: 0, y: 250, scale: 0.4 }}
             animate={{ opacity: frame.fade, x: 0, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ type: "spring", duration: 0.7, bounce: 0.12 }}
@@ -1058,8 +1062,8 @@ function CallPanel({ layout, call, chapter, fade }: { layout: SceneLayout; call:
           </p>
         </div>
       ) : (
-        <div className="flex shrink-0 items-center gap-2.5 px-4 pt-3.5">
-          <VoiceOrb size={32} level={call.level} thinking={call.status === "Thinking…"} />
+        <div className="flex shrink-0 items-center gap-2.5 px-4 pt-4">
+          <VoiceOrb size={36} level={call.level} thinking={call.status === "Thinking…"} />
           <div className="leading-tight">
             <p className="text-[12.5px] font-semibold">{BRAND.name}</p>
             <p className="text-[11px] text-zinc-500">{chat ? "Chat" : call.status}</p>
@@ -1202,22 +1206,34 @@ function PanelMessage({ message }: { message: Message }) {
 
 // Words in the visitor's own message that the write-up uses.
 function Marked({ text, marks }: { text: string; marks: { phrase: string; on: boolean }[] }) {
-  const pattern = new RegExp(`(${marks.map((mark) => mark.phrase).join("|")})`);
-  return text.split(pattern).map((part, index) => {
-    const mark = marks.find((item) => item.phrase === part);
-    if (!mark) return part;
-    return (
+  const parts: React.ReactNode[] = [];
+  let rest = text;
+  while (rest) {
+    // The marked phrase that comes first in what's left.
+    let next: { at: number; mark: (typeof marks)[number] } | null = null;
+    for (const mark of marks) {
+      const at = rest.indexOf(mark.phrase);
+      if (at !== -1 && (!next || at < next.at)) next = { at, mark };
+    }
+    if (!next) {
+      parts.push(rest);
+      break;
+    }
+    if (next.at) parts.push(rest.slice(0, next.at));
+    parts.push(
       <span
-        key={index}
+        key={parts.length}
         className={cn(
           "-mx-px rounded-[3px] px-px transition-colors duration-300",
-          mark.on ? "bg-amber-200 text-zinc-900" : "bg-transparent",
+          next.mark.on ? "bg-amber-200 text-zinc-900" : "bg-transparent",
         )}
       >
-        {part}
-      </span>
+        {next.mark.phrase}
+      </span>,
     );
-  });
+    rest = rest.slice(next.at + next.mark.phrase.length);
+  }
+  return parts;
 }
 
 // ---------------------------------------------------------------------------
@@ -1235,13 +1251,13 @@ function Note({
   rows: { key: string; value: React.ReactNode; hot?: boolean }[];
 }) {
   return (
-    <div className="rounded-[14px] bg-[#171512] p-3 text-white shadow-[0_0_0_1px_rgb(255_255_255/0.06),0_24px_48px_-16px_rgb(20_15_5/0.6)]">
+    <div className="rounded-[14px] bg-[#171512] p-3 text-white shadow-[0_0_0_1px_rgb(255_255_255/0.06),0_24px_48px_-16px_rgb(20_15_5/0.6)] group-data-compact/note:px-3 group-data-compact/note:py-2.5">
       <div className="flex items-center gap-2 text-[11.5px] font-medium">
         {icon}
         <span className="text-white/90">{title}</span>
         {status && <span className="ml-auto">{status}</span>}
       </div>
-      <div className="mt-2.5 flex flex-col gap-[7px] border-t border-white/[0.08] pt-2.5 font-mono text-[10.5px]">
+      <div className="mt-2.5 flex flex-col gap-[7px] border-t border-white/[0.08] pt-2.5 font-mono text-[10.5px] group-data-compact/note:mt-2 group-data-compact/note:gap-[4px] group-data-compact/note:pt-2">
         {rows.map((row, index) => (
           <motion.div
             key={row.key}
