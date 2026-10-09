@@ -3,5 +3,8 @@
   "functions": {
     "src/app/api/knowledge/worker/route.ts": { "memory": 2048 }
   },
-  "crons": [{ "path": "/api/knowledge/worker", "schedule": "0 4 * * *" }]
+  "crons": [
+    { "path": "/api/knowledge/worker", "schedule": "0 4 * * *" },
+    { "path": "/api/billing/refill", "schedule": "0 * * * *" }
+  ]
 }

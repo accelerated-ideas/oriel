@@ -5,11 +5,15 @@ import { authorizeOrg } from "@/lib/auth/access";
 import { getWorkspaceBilling } from "@/lib/billing/limits";
 import {
   billingConfigured,
+  changePlan,
   createCheckoutUrl,
   createPortalUrl,
   hasLiveSubscription,
+  PaymentFailedError,
+  previewPlanChange,
   stripePriceId,
-  switchSubscription,
+  type PlanChangePreview,
+  type PlanChangeResult,
 } from "@/lib/billing/stripe-billing";
 import type { ActionResult } from "@/lib/types";
 
@@ -29,9 +33,26 @@ async function billingAccess(organizationId: string) {
   return { ...access, workspace };
 }
 
-// Starts Checkout, or switches an existing subscription in place.
-// Returns a URL to go to, or null when the switch already happened.
-export async function actionChoosePlan(input: z.input<typeof choosePlanSchema>): Promise<ActionResult<{ url: string | null }>> {
+// What choosing a plan would do for a workspace that already pays: charge
+// the difference now, or switch at the next billing date.
+export async function actionPreviewPlanChange(input: z.input<typeof choosePlanSchema>): Promise<ActionResult<{ preview: PlanChangePreview }>> {
+  try {
+    const data = choosePlanSchema.parse(input);
+    const access = await billingAccess(data.organizationId);
+    if (!access.ok) return access;
+    if (!hasLiveSubscription(access.workspace)) return { ok: false, error: "This workspace has no plan to change." };
+    return { ok: true, data: { preview: await previewPlanChange(access.workspace, data) } };
+  } catch (error) {
+    console.error("actionPreviewPlanChange", error);
+    return { ok: false, error: error instanceof z.ZodError ? error.issues[0].message : "Couldn't reach Stripe. Try again." };
+  }
+}
+
+// Starts Checkout, or changes an existing subscription. Returns a URL to go
+// to, or what the change did.
+export async function actionChoosePlan(
+  input: z.input<typeof choosePlanSchema>,
+): Promise<ActionResult<{ url: string } | { url: null; change: PlanChangeResult }>> {
   try {
     const data = choosePlanSchema.parse(input);
     const access = await billingAccess(data.organizationId);
@@ -40,12 +61,15 @@ export async function actionChoosePlan(input: z.input<typeof choosePlanSchema>):
     if (!priceId) return { ok: false, error: "This plan isn't set up in Stripe yet." };
 
     if (hasLiveSubscription(access.workspace)) {
-      await switchSubscription(access.workspace, priceId);
-      revalidatePath(`/account/${data.organizationId}/billing`);
-      return { ok: true, data: { url: null } };
+      const change = await changePlan(access.workspace, data);
+      revalidatePath(`/account/${data.organizationId}`, "layout");
+      return { ok: true, data: { url: null, change } };
     }
     return { ok: true, data: { url: await createCheckoutUrl(access.workspace, priceId, access.user.email ?? "") } };
   } catch (error) {
+    if (error instanceof PaymentFailedError) {
+      return { ok: false, error: `${error.message} Your plan didn't change. Update your card under Invoices and payment, then try again.` };
+    }
     console.error("actionChoosePlan", error);
     return { ok: false, error: error instanceof z.ZodError ? error.issues[0].message : "Couldn't reach Stripe. Try again." };
   }

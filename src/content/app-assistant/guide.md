@@ -173,7 +173,7 @@ Invite people by email from Members on the dashboard home, as an Admin or a Memb
 
 ## Billing and plans
 
-Billing is in the account menu at the bottom of the sidebar. It shows the current plan, this month's messages, assistants and members against the plan's limits, and lets you change plan or open Invoices and payment.
+Billing is in the account menu at the bottom of the sidebar. It shows the current plan, the messages used until the next billing date, assistants and members against the plan's limits, and lets you change plan or open Invoices and payment.
 
 - Trial: 14 days and 100 messages, everything except hiding "Powered by {{product}}", no card needed. Each person gets one trial.
 - Starter, $39 a month: 1,000 messages a month, 1 assistant, 2 team members, knowledge up to about 400 pages, site maps of 200 pages.
@@ -181,4 +181,13 @@ Billing is in the account menu at the bottom of the sidebar. It shows the curren
 - Premium, $299 a month: 10,000 messages a month, 10 assistants, 15 team members, knowledge up to about 8,000 pages, site maps of 5,000 pages, hiding "Powered by {{product}}", and priority support.
 - Paying yearly gives two months free.
 
-When the trial ends without a plan, or a workspace runs out of messages for the month, assistants stop answering and their bubble is hidden until a plan is chosen or the month resets.
+Messages renew every month on the billing date, the day the plan started. Yearly plans get their messages each month too, on the same day.
+
+Changing plan asks to confirm first and says what happens:
+- An upgrade, or moving from monthly to yearly, applies right away. The card is charged the new price for the rest of the billing period, minus what's left of the current plan, and the workspace gets the extra messages for the rest of the month.
+- A cheaper plan, or moving from yearly to monthly, starts on the next billing date. Until then the current plan stays, and Billing shows the switch. Choosing Keep on the current plan cancels the switch.
+- If the card is declined, nothing changes. Update it under Invoices and payment, then try again.
+
+Invoices, the card on file and cancelling are under Invoices and payment. A cancelled plan stays active until the end of what's been paid for.
+
+When the trial ends without a plan, or a workspace runs out of messages, assistants stop answering and their bubble is hidden until a plan is chosen or the messages renew on the billing date.

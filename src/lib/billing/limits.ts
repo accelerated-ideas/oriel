@@ -3,7 +3,7 @@ import { IS_CLOUD } from "@/config/edition";
 import { SITE_MAP_MAX_PAGES } from "@/lib/site-map/pages";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { Agent } from "@/lib/types";
-import { messagePeriodStart, planState, WORKSPACE_BILLING_COLUMNS, type PlanState, type WorkspaceBilling } from "./plan-state";
+import { messageAllowance, planState, WORKSPACE_BILLING_COLUMNS, type PlanState, type WorkspaceBilling } from "./plan-state";
 
 // Plan limits. Only the cloud edition has any: self-hosted installs are unlimited.
 
@@ -14,14 +14,6 @@ export async function getWorkspaceBilling(organizationId: string) {
     .eq("id", organizationId)
     .maybeSingle();
   return (data as WorkspaceBilling | null) ?? null;
-}
-
-export async function countMessages(organizationId: string, since: Date) {
-  const { data } = await supabaseAdmin.rpc("organization_message_count", {
-    p_organization_id: organizationId,
-    p_since: since.toISOString(),
-  });
-  return Number(data ?? 0);
 }
 
 export async function countMembers(organizationId: string) {
@@ -139,11 +131,10 @@ export async function canAnswer(organizationId: string): Promise<AnswerCheck> {
   let result: AnswerCheck = { ok: true };
   const workspace = await getWorkspaceBilling(organizationId);
   const state: PlanState | null = workspace ? planState(workspace) : null;
-  if (!state || state.kind === "inactive") {
+  if (!workspace || !state || state.kind === "inactive") {
     result = { ok: false, reason: "inactive" };
   } else {
-    const used = await countMessages(organizationId, messagePeriodStart(state));
-    if (used >= state.plan.includes.messages_per_month) result = { ok: false, reason: "message-limit" };
+    if (messageAllowance(workspace, state).left <= 0) result = { ok: false, reason: "message-limit" };
   }
 
   answerCache.set(organizationId, { result, at: Date.now() });

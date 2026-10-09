@@ -1,11 +1,15 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ExternalLink } from "lucide-react";
-import type { BillingPeriod, SubscriptionPlan } from "@/config/plans";
-import { actionChoosePlan, actionOpenBillingPortal } from "@/server-actions/billing";
+import { format } from "date-fns";
+import { toast } from "sonner";
+import { Check, ExternalLink, Loader2 } from "lucide-react";
+import { planChangeTiming, type BillingPeriod, type SubscriptionPlan } from "@/config/plans";
+import type { PlanChangePreview } from "@/lib/billing/stripe-billing";
+import { actionChoosePlan, actionOpenBillingPortal, actionPreviewPlanChange } from "@/server-actions/billing";
 import { runAction } from "@/lib/run-action";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { segmentedItem, segmentedTrack } from "@/components/ui/misc";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +31,18 @@ export function ManageBillingButton({ organizationId }: { organizationId: string
   );
 }
 
+type Selection = { planId: string; period: BillingPeriod };
+type Confirming = { plan: SubscriptionPlan; period: BillingPeriod; label: string; preview: PlanChangePreview | null };
+type Current = Selection & { next: (Selection & { at: string }) | null };
+
+const day = (iso: string) => format(new Date(iso), "MMM d, yyyy");
+
+function bill(plan: SubscriptionPlan, period: BillingPeriod) {
+  return period === "annual"
+    ? `$${plan.price_config.annual_total.toLocaleString("en-US")} a year`
+    : `$${plan.price_config.price.toLocaleString("en-US")} a month`;
+}
+
 export function PlanPicker({
   organizationId,
   canManage,
@@ -36,17 +52,29 @@ export function PlanPicker({
   organizationId: string;
   canManage: boolean;
   plans: SubscriptionPlan[];
-  current: { planId: string; period: BillingPeriod } | null;
+  current: Current | null;
 }) {
   const router = useRouter();
   const [period, setPeriod] = useState<BillingPeriod>(current?.period ?? "monthly");
   const [pending, setPending] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<Confirming | null>(null);
   const currentIndex = plans.findIndex((plan) => plan.id === current?.planId);
+  const currentPlan = plans[currentIndex];
 
-  const choose = async (plan: SubscriptionPlan) => {
+  // No plan yet: off to Checkout. Keeping the current plan drops a scheduled
+  // switch; anything else is confirmed first.
+  const choose = async (plan: SubscriptionPlan, label: string) => {
+    if (current && !(plan.id === current.planId && period === current.period)) {
+      setConfirming({ plan, period, label, preview: null });
+      const result = await runAction(() => actionPreviewPlanChange({ organizationId, planId: plan.id, period }));
+      setConfirming((open) =>
+        open?.plan.id === plan.id && open.period === period ? (result ? { ...open, preview: result.data.preview } : null) : open,
+      );
+      return;
+    }
     setPending(plan.id);
     const result = await runAction(() => actionChoosePlan({ organizationId, planId: plan.id, period }), {
-      success: current ? `You're on ${plan.name} now` : undefined,
+      success: current ? `You're staying on ${plan.name}` : undefined,
     });
     if (result?.data.url) {
       window.location.assign(result.data.url);
@@ -79,16 +107,21 @@ export function PlanPicker({
       <div className="mt-5 grid gap-3 lg:grid-cols-3">
         {plans.map((plan, index) => {
           const isCurrent = plan.id === current?.planId && period === current.period;
+          const isNext = plan.id === current?.next?.planId && period === current.next.period;
           const price = period === "annual" ? plan.price_config.annual_price : plan.price_config.price;
-          const label = isCurrent
-            ? "Current plan"
-            : !current
-              ? `Choose ${plan.name}`
-              : plan.id === current.planId
-                ? `Switch to ${period === "annual" ? "yearly" : "monthly"}`
-                : index > currentIndex
-                  ? `Upgrade to ${plan.name}`
-                  : `Switch to ${plan.name}`;
+          const label = !current
+            ? `Choose ${plan.name}`
+            : isCurrent
+              ? current.next
+                ? `Keep ${plan.name}`
+                : "Current plan"
+              : isNext
+                ? `Starts ${format(new Date(current.next!.at), "MMM d")}`
+                : plan.id === current.planId
+                  ? `Switch to ${period === "annual" ? "yearly" : "monthly"}`
+                  : index > currentIndex
+                    ? `Upgrade to ${plan.name}`
+                    : `Switch to ${plan.name}`;
           return (
             <div
               key={plan.id}
@@ -114,9 +147,9 @@ export function PlanPicker({
               <Button
                 className="mt-5 w-full"
                 variant={isCurrent ? "soft" : plan.style.is_recommended ? "primary" : "outline"}
-                disabled={isCurrent || !canManage || pending !== null}
+                disabled={(isCurrent && !current?.next) || isNext || !canManage || pending !== null}
                 loading={pending === plan.id}
-                onClick={() => void choose(plan)}
+                onClick={() => void choose(plan, label)}
               >
                 {label}
               </Button>
@@ -133,6 +166,105 @@ export function PlanPicker({
         })}
       </div>
       {!canManage && <p className="mt-4 text-[13.5px] text-muted">Only owners and admins can change the plan.</p>}
+
+      {current && currentPlan && (
+        <ConfirmChange
+          organizationId={organizationId}
+          from={{ plan: currentPlan, period: current.period }}
+          target={confirming}
+          onClose={() => setConfirming(null)}
+          onDone={() => {
+            setConfirming(null);
+            router.refresh();
+          }}
+        />
+      )}
     </section>
+  );
+}
+
+// What a switch costs and when it happens, before it does: upgrades are
+// charged the prorated difference now, the rest switch at the next billing date.
+function ConfirmChange({
+  organizationId,
+  from,
+  target,
+  onClose,
+  onDone,
+}: {
+  organizationId: string;
+  from: { plan: SubscriptionPlan; period: BillingPeriod };
+  target: Confirming | null;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const [saving, setSaving] = useState(false);
+  const preview = target?.preview ?? null;
+
+  const confirm = async () => {
+    if (!target) return;
+    setSaving(true);
+    const result = await runAction(() => actionChoosePlan({ organizationId, planId: target.plan.id, period: target.period }));
+    setSaving(false);
+    if (!result || result.data.url !== null) return;
+    const change = result.data.change;
+    toast.success(change.timing === "renewal" ? `${target.plan.name} starts ${day(change.at)}` : `You're on ${target.plan.name} now`);
+    onDone();
+  };
+
+  const timing = target ? planChangeTiming(from, target) : null;
+  const money = (amount: number, currency: string) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase() }).format(amount / 100);
+
+  return (
+    <Dialog open={target !== null} onOpenChange={(open) => !open && !saving && onClose()}>
+      <DialogContent size="sm">
+        <DialogHeader title={target?.label ?? ""} />
+        <DialogBody className="flex flex-col gap-3 text-[14.5px] leading-relaxed text-ink-2">
+          {!preview || !target ? (
+            <p className="flex items-center gap-2 text-muted">
+              <Loader2 className="size-4 animate-spin" /> Checking with Stripe…
+            </p>
+          ) : preview.timing === "now" ? (
+            <>
+              <p>
+                You pay <span className="font-semibold text-ink tabular">{money(preview.amountDue, preview.currency)}</span> now: the new
+                price for the rest of this billing period, minus what&apos;s left of {from.plan.name}.
+                {preview.extraMessages > 0 && (
+                  <>
+                    {" "}
+                    You get <span className="font-semibold text-ink tabular">{preview.extraMessages.toLocaleString("en-US")}</span> more
+                    messages this month right away.
+                  </>
+                )}
+              </p>
+              <p className="text-muted">
+                Then {target.plan.name} is {bill(target.plan, target.period)}, with{" "}
+                {target.plan.includes.messages_per_month.toLocaleString("en-US")} messages a month.
+              </p>
+            </>
+          ) : preview.timing === "renewal" ? (
+            <p>
+              You keep {from.plan.name} until {day(preview.at)}. Then {target.plan.name} starts at {bill(target.plan, target.period)}, with{" "}
+              {target.plan.includes.messages_per_month.toLocaleString("en-US")} messages a month.
+            </p>
+          ) : null}
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button loading={saving} disabled={!preview || preview.timing === "same"} onClick={() => void confirm()}>
+            {preview?.timing === "now"
+              ? `Pay ${money(preview.amountDue, preview.currency)}`
+              : preview?.timing === "renewal"
+                ? `Switch on ${format(new Date(preview.at), "MMM d")}`
+                : timing === "renewal"
+                  ? "Switch"
+                  : "Upgrade"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

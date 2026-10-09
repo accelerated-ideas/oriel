@@ -92,3 +92,18 @@ export function getPlanByStripePriceId(priceId: string) {
     ) ?? null
   );
 }
+
+// When a switch between paid plans takes effect, as Stripe's customer portal
+// decides it: right away when it costs more per bill (charged the prorated
+// difference now), at the next billing date when it costs less or bills more
+// often.
+export function planChangeTiming(
+  from: { plan: SubscriptionPlan; period: BillingPeriod },
+  to: { plan: SubscriptionPlan; period: BillingPeriod },
+): "same" | "now" | "renewal" {
+  if (from.plan.id === to.plan.id && from.period === to.period) return "same";
+  if (from.period === "annual" && to.period === "monthly") return "renewal";
+  const bill = ({ plan, period }: { plan: SubscriptionPlan; period: BillingPeriod }) =>
+    period === "annual" ? plan.price_config.annual_total : plan.price_config.price;
+  return bill(to) < bill(from) ? "renewal" : "now";
+}

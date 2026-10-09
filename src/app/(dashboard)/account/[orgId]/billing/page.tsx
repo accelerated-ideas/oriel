@@ -5,8 +5,8 @@ import { CircleCheck, TriangleAlert } from "lucide-react";
 import { IS_CLOUD } from "@/config/edition";
 import { paidPlans } from "@/config/plans";
 import { requireOrgPage } from "@/lib/auth/access";
-import { countAssistants, countMembers, countMessages, getWorkspaceBilling } from "@/lib/billing/limits";
-import { messagePeriodStart, planState, type PlanState } from "@/lib/billing/plan-state";
+import { countAssistants, countMembers, getWorkspaceBilling } from "@/lib/billing/limits";
+import { messageAllowance, planState, type PlanState } from "@/lib/billing/plan-state";
 import { syncCheckoutSession } from "@/lib/billing/stripe-billing";
 import { PageBody } from "@/components/dashboard/app-shell";
 import { WorkspaceShell } from "@/components/dashboard/workspace-shell";
@@ -19,15 +19,22 @@ export const dynamic = "force-dynamic";
 
 const day = (date: Date) => format(date, "MMM d, yyyy");
 
+function bill(plan: { price_config: { price: number; annual_total: number } }, period: "monthly" | "annual") {
+  return period === "annual"
+    ? `$${plan.price_config.annual_total.toLocaleString("en-US")} a year`
+    : `$${plan.price_config.price.toLocaleString("en-US")} a month`;
+}
+
 function statusLine(state: PlanState) {
   switch (state.kind) {
     case "trial":
       return `Trial ends ${day(state.endsAt)}, ${state.daysLeft} ${state.daysLeft === 1 ? "day" : "days"} left.`;
     case "active": {
-      const price = state.period === "annual" ? state.plan.price_config.annual_total : state.plan.price_config.price;
-      const cadence = state.period === "annual" ? "a year" : "a month";
       if (state.endsAt) return `Ends ${day(state.endsAt)}. It won't renew.`;
-      return state.renewsAt ? `$${price.toLocaleString("en-US")} ${cadence}, renews ${day(state.renewsAt)}.` : `$${price} ${cadence}.`;
+      if (state.next) {
+        return `${bill(state.plan, state.period)} until ${day(state.next.at)}, then ${state.next.plan.name} at ${bill(state.next.plan, state.next.period)}.`;
+      }
+      return state.renewsAt ? `${bill(state.plan, state.period)}, renews ${day(state.renewsAt)}.` : `${bill(state.plan, state.period)}.`;
     }
     case "past-due":
       return "Your last payment failed. Update your card to keep your assistants answering.";
@@ -81,8 +88,8 @@ export default async function BillingPage({
   const workspace = await getWorkspaceBilling(orgId);
   if (!workspace) notFound();
   const state = planState(workspace);
-  const [messages, assistants, people] = await Promise.all([
-    countMessages(orgId, messagePeriodStart(state)),
+  const allowance = messageAllowance(workspace, state);
+  const [assistants, people] = await Promise.all([
     countAssistants(orgId),
     countMembers(orgId),
   ]);
@@ -117,9 +124,15 @@ export default async function BillingPage({
           {state.kind !== "inactive" && (
             <div className="grid gap-6 border-t border-line bg-zinc-50/70 p-6 sm:grid-cols-3 sm:p-7">
               <Meter
-                label={state.kind === "trial" ? "Messages in trial" : "Messages this month"}
-                used={messages}
-                limit={limits.messages_per_month}
+                label={
+                  state.kind === "trial"
+                    ? "Messages in trial"
+                    : allowance.renewsAt
+                      ? `Messages until ${format(allowance.renewsAt, "MMM d")}`
+                      : "Messages"
+                }
+                used={Math.max(0, allowance.limit - allowance.left)}
+                limit={allowance.limit}
                 runsOut
               />
               <Meter label="Assistants" used={assistants} limit={limits.assistants} />
@@ -132,7 +145,18 @@ export default async function BillingPage({
           organizationId={orgId}
           canManage={canManage}
           plans={paidPlans}
-          current={state.kind === "active" || state.kind === "past-due" ? { planId: state.plan.id, period: state.period } : null}
+          current={
+            state.kind === "active" || state.kind === "past-due"
+              ? {
+                  planId: state.plan.id,
+                  period: state.period,
+                  next:
+                    state.kind === "active" && state.next
+                      ? { planId: state.next.plan.id, period: state.next.period, at: state.next.at.toISOString() }
+                      : null,
+                }
+              : null
+          }
         />
       </PageBody>
     </WorkspaceShell>

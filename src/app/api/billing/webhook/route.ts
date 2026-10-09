@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type Stripe from "stripe";
+import { grantInvoiceCredits } from "@/lib/billing/credits";
 import { billingConfigured, syncSubscription } from "@/lib/billing/stripe-billing";
 import { platformStripe } from "@/lib/stripe-platform";
 
@@ -7,6 +8,8 @@ export const dynamic = "force-dynamic";
 
 // Stripe events for workspace subscriptions (cloud edition). Register
 // <NEXT_PUBLIC_APP_URL>/api/billing/webhook in Stripe with the events below.
+// Paid invoices grant messages (src/lib/billing/credits.ts); subscription
+// events copy the plan and status.
 export async function POST(request: NextRequest) {
   const secret = process.env.STRIPE_BILLING_WEBHOOK_SECRET;
   if (!billingConfigured() || !secret) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -30,7 +33,11 @@ export async function POST(request: NextRequest) {
     case "customer.subscription.created":
     case "customer.subscription.updated":
     case "customer.subscription.deleted":
-      await syncSubscription(event.data.object);
+      // Read fresh: Stripe doesn't promise events arrive in order.
+      await syncSubscription(await platformStripe().subscriptions.retrieve(event.data.object.id));
+      break;
+    case "invoice.paid":
+      await grantInvoiceCredits(event.data.object);
       break;
   }
   return NextResponse.json({ received: true });

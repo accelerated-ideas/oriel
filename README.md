@@ -166,13 +166,20 @@ A self-hosted install serves the dashboard at `/`; the marketing site (`src/app/
 - **Plans (cloud):** prices, limits and Stripe product/price IDs (per environment) live in `src/config/subscription-plans.ts`. The landing page and the Billing page read them through `src/config/plans.ts`. Fill in the Stripe IDs after creating the products in Stripe.
 - **Limits (cloud)** are in `src/lib/billing/limits.ts`:
   - **Assistants and seats:** checked when creating an assistant or inviting someone. Pending invitations count as seats.
-  - **Messages:** counted per calendar month (UTC), or over the trial. At the limit, or with no active plan, the launcher hides and the assistant stops answering.
+  - **Messages:** a stored balance on the workspace (`message_credits`), and each visitor message takes one (a database trigger). Grants fill it (`src/lib/billing/credits.ts`), each applied once:
+    - A new trial workspace starts with the trial's 100.
+    - Paid invoices: the first payment and every renewal reset it to the plan's monthly messages; an upgrade adds the new plan's extra messages for the share of the month that's left.
+    - The refill cron (`/api/billing/refill`, hourly in `vercel.json`) starts each new month on the billing date for yearly plans and comped workspaces, which have no monthly invoice.
+
+    At zero, or with no active plan, the launcher hides and the assistant stops answering.
   - **Features:** the per-plan switches (actions, Stripe, identity) aren't enforced yet.
-  - **Comping a workspace:** to give a workspace a plan without Stripe (e.g. your own demo), set `plan_id` and `subscription_status = 'active'` on its row.
+  - **Comping a workspace:** to give a workspace a plan without Stripe (e.g. your own demo), set `plan_id`, `subscription_status = 'active'` and `credits_renew_at = now()` on its row. The refill cron then gives it the plan's messages every month.
 - **Billing (cloud):** Billing (`/account/[orgId]/billing`) runs on your Stripe account (`STRIPE_SECRET_KEY`).
-  - **Choosing a plan:** opens Stripe Checkout. Switching plans later updates the subscription in place, prorated.
+  - **Choosing a plan:** opens Stripe Checkout.
+  - **Changing plans:** shows what happens before it does, like Stripe's customer portal would. A switch that costs more per bill (an upgrade, or monthly to yearly) applies right away and charges the prorated difference; a declined card leaves the plan as it was. A cheaper plan, or yearly to monthly, waits for the next billing date as a subscription schedule, and choosing the current plan again cancels it.
   - **Invoices, card and cancelling:** handled in Stripe's customer portal.
-  - **Webhook:** register `<NEXT_PUBLIC_APP_URL>/api/billing/webhook` for `checkout.session.completed` and `customer.subscription.created`, `.updated` and `.deleted`, and set `STRIPE_BILLING_WEBHOOK_SECRET`.
+  - **Webhook:** register `<NEXT_PUBLIC_APP_URL>/api/billing/webhook` for `checkout.session.completed`, `invoice.paid`, and `customer.subscription.created`, `.updated` and `.deleted`, and set `STRIPE_BILLING_WEBHOOK_SECRET`. Each paid invoice grants messages once, however often it's delivered.
+  - **Testing locally:** `./start-webhooks.sh` forwards those events from your Stripe sandbox to the local app with the Stripe CLI, and saves the CLI's signing secret as `STRIPE_BILLING_WEBHOOK_SECRET` in `.env.local`.
 
 ## Integrations
 
@@ -273,7 +280,7 @@ Calls only need `ELEVENLABS_API_KEY`, with Text to Speech and Speech to Text acc
 | `STRIPE_APP_INSTALL_URL`, `STRIPE_APP_SECRET_KEY`, `STRIPE_APP_SANDBOX_INSTALL_URL`, `STRIPE_APP_SANDBOX_SECRET_KEY` | Optional. "Connect with Stripe" for customers, through your Stripe App (see "Integrations"). |
 | `SLACK_`, `SALESFORCE_`, `HUBSPOT_`, `CALENDLY_` + `CLIENT_ID`, `CLIENT_SECRET` | Optional. OAuth apps for those integrations (see "Integrations"). |
 | `PLATFORM_ADMIN_EMAILS` | Comma-separated emails that can open `/admin/costs`. |
-| `CRON_SECRET` | Protects `/api/knowledge/worker` (Vercel Cron sends it). Without it, a key derived from `WIDGET_SESSION_SECRET` is used. |
+| `CRON_SECRET` | Protects the cron routes, `/api/knowledge/worker` and `/api/billing/refill` (Vercel Cron sends it). Without it, a key derived from `WIDGET_SESSION_SECRET` is used, which Vercel Cron can't send. |
 | `KNOWLEDGE_BROWSER`, `BROWSER_WS_ENDPOINT`, `CHROMIUM_PATH` | Where pages built in the browser are rendered (see "Knowledge"). |
 | `NEXT_PUBLIC_APP_ASSISTANT_ID`, `APP_ASSISTANT_WORKSPACE_ID` | The dashboard's help assistant (`npm run app-assistant` prints the ID). Optional. |
 | `KNOWLEDGE_AUTO_REFRESH_DAYS` | Self-hosted. How often website pages are re-read automatically (default 7, 0 turns it off). |
