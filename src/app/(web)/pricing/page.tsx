@@ -14,11 +14,11 @@ export const metadata: Metadata = pageMetadata({ title: "Pricing", description: 
 const QUESTIONS: Question[] = [
   {
     q: "What counts as a message?",
-    a: "Each message a visitor sends, whether they say it or type it. The assistant's replies, the greeting, and the goodbye that ends a conversation don't count. Counts start again each calendar month.",
+    a: "Each message a visitor sends, whether they say it or type it. The assistant's replies, the greeting, and the goodbye that ends a conversation don't count. Your messages renew every month on your billing date.",
   },
   {
     q: "What happens if we reach the limit?",
-    a: "The assistant pauses until the next month starts, and its button disappears from your site. You're never charged for going over. Move to a bigger plan and it's back right away.",
+    a: "The assistant pauses until your messages renew on your billing date, and its button disappears from your site. You're never charged for going over. Upgrade and it's back right away, with the extra messages for the rest of the month.",
   },
   {
     q: "How does the free trial work?",
@@ -26,7 +26,7 @@ const QUESTIONS: Question[] = [
   },
   {
     q: "Can we change plans or cancel?",
-    a: "Yes, any time from Billing in your workspace. Plan changes are prorated. If you cancel, your plan runs until the end of the period you've paid for, and your workspace and its data stay where they are.",
+    a: "Yes, any time from Billing in your workspace. Upgrades apply right away, and you pay the prorated difference. Downgrades start on your next billing date. If you cancel, your plan runs until the end of the period you've paid for, and your workspace and its data stay where they are.",
   },
   {
     q: "What if a payment fails?",

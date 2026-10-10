@@ -125,7 +125,20 @@ export function faqPage(path: string, questions: Question[]): Thing {
   };
 }
 
-export function webPage({ path, name, description, updated }: { path: string; name: string; description: string; updated?: Date }): Thing {
+export function webPage({
+  path,
+  name,
+  description,
+  updated,
+  parents = [],
+}: {
+  path: string;
+  name: string;
+  description: string;
+  updated?: Date;
+  // Pages between the home page and this one, for the breadcrumb.
+  parents?: { name: string; path: string }[];
+}): Thing {
   return {
     "@type": "WebPage",
     "@id": appUrl(`${path}#webpage`),
@@ -138,10 +151,12 @@ export function webPage({ path, name, description, updated }: { path: string; na
     ...(updated && { dateModified: updated.toISOString().slice(0, 10) }),
     breadcrumb: {
       "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: BRAND.name, item: appUrl("/") },
-        { "@type": "ListItem", position: 2, name, item: appUrl(path) },
-      ],
+      itemListElement: [{ name: BRAND.name, path: "/" }, ...parents, { name, path }].map((page, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: page.name,
+        item: appUrl(page.path),
+      })),
     },
   };
 }

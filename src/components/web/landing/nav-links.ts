@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/#how-it-works", label: "How it works" },
   { href: REPO_HREF, label: "Open source", footerOnly: true, external: Boolean(REPO_URL) },
   { href: "/pricing", label: "Pricing" },
+  { href: "/integrations", label: "Integrations", footerOnly: true },
   { href: "/#faq", label: "FAQ" },
 ];
 
