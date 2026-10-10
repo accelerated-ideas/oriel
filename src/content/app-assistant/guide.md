@@ -30,6 +30,7 @@ The Playground is where you try an assistant before visitors do. It shows the re
 
 - Type to it, or press the phone button next to Send to talk to it.
 - New conversation, under the box, starts over.
+- Test as a customer, above the box, makes the assistant treat you as someone signed in to your site: enter their email, their Stripe customer ID, or both, or pick one of your recent Stripe customers. Billing questions are then answered from that customer's Stripe billing. Test as a visitor goes back to someone who isn't signed in.
 - Conversations from the Playground are marked as tests. There it doesn't move between pages or run your site's code, because it isn't on your site; it tells you what it would do instead.
 - Beside the box are shortcuts to what shapes its answers: Knowledge, Actions, Site map, and Voice and language.
 

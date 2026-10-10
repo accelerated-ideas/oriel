@@ -92,7 +92,7 @@ function identityOf(context: RuntimeContext) {
 export function notSignedIn(context: RuntimeContext) {
   return {
     error: context.conversation.is_preview
-      ? "This needs a signed-in customer, and a dashboard preview has no customer account. Don't say they're logged out: explain this works for signed-in users on the site."
+      ? "This needs a signed-in customer, and this Playground conversation is a visitor who isn't signed in. Don't say they're logged out: explain it works for signed-in users on the site, and that they can try it here with Test as a customer, above the chat."
       : "This needs a signed-in user, and this visitor isn't signed in. Tell them they need to log in first, and offer to take them to the login page if the site map has one.",
   };
 }
