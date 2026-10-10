@@ -1,15 +1,10 @@
 {
+  "$schema": "https://stripe.com/stripe-app.schema.json",
   "id": "com.useoriel.assistant",
-  "version": "1.0.0",
   "name": "Oriel",
+  "version": "1.0.0",
   "icon": "./icon.png",
-  "distribution_type": "public",
-  "stripe_api_access_type": "oauth",
-  "sandbox_install_compatible": true,
-  "allowed_redirect_uris": [
-    "https://useoriel.com/api/integrations/stripe/callback",
-    "http://localhost:3010/api/integrations/stripe/callback"
-  ],
+  "extensions": null,
   "permissions": [
     {
       "permission": "customer_read",
@@ -47,5 +42,12 @@
       "permission": "connected_account_read",
       "purpose": "Shows which Stripe account is connected in the Oriel dashboard."
     }
-  ]
+  ],
+  "allowed_redirect_uris": [
+    "https://useoriel.com/api/integrations/stripe/callback",
+    "https://localhost:3010/api/integrations/stripe/callback"
+  ],
+  "distribution_type": "public",
+  "stripe_api_access_type": "oauth",
+  "sandbox_install_compatible": true
 }

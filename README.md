@@ -212,7 +212,7 @@ Two generic routes run OAuth for every service: `/api/integrations/<service>/con
 **Setup for each service:**
 
 - **Stripe:** customers install our Stripe App, which asks only for the permissions in [`integrations/stripe-app/stripe-app.json`](integrations/stripe-app/stripe-app.json), or paste a restricted key. The page lists the key's permissions.
-  - **The app:** upload it to your *live* Stripe account (not a sandbox) with the Stripe CLI and its apps plugin: `stripe login`, then `stripe apps upload` in `integrations/stripe-app`. Stripe has to review and publish it before other accounts can install it; until then, use the test links on its External test tab.
+  - **The app:** upload it to your *live* Stripe account (not a sandbox) with the Stripe CLI and its apps plugin: `stripe login`, then `stripe apps upload integrations/stripe-app --live`. It has no UI in the Stripe Dashboard; the `package.json` and lockfile there are only because the upload requires them. Stripe has to review and publish it before other accounts can install it; until then, use the test links on its External test tab.
   - **Live installs:** set `STRIPE_APP_INSTALL_URL` to the app's OAuth link (Settings tab). Codes are exchanged with `STRIPE_APP_SECRET_KEY`, or `STRIPE_SECRET_KEY` when that's unset.
   - **Sandbox installs:** set `STRIPE_APP_SANDBOX_INSTALL_URL` to the sandbox OAuth link and `STRIPE_APP_SANDBOX_SECRET_KEY` to the secret key of the app's managed sandbox, which Stripe creates for it. Customers then also get "Connect a sandbox".
   - **Tokens:** access tokens last an hour and are refreshed on use; refresh tokens change on every refresh and last a year.

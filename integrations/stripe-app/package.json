@@ -1,0 +1,6 @@
+{
+  "name": "oriel-stripe-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The Stripe App behind \"Connect with Stripe\": OAuth and permissions only, no UI in the Stripe Dashboard. Upload with `stripe apps upload --live` (README, Integrations)."
+}

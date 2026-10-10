@@ -45,3 +45,6 @@ next-env.d.ts
 
 # local https certificate for npm run dev:https
 /certificates
+
+# Stripe CLI output from `stripe apps upload`
+integrations/stripe-app/.build/
