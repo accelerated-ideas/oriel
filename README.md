@@ -282,6 +282,7 @@ Calls only need `ELEVENLABS_API_KEY`, with Text to Speech and Speech to Text acc
 | `STRIPE_APP_INSTALL_URL`, `STRIPE_APP_SECRET_KEY`, `STRIPE_APP_SANDBOX_INSTALL_URL`, `STRIPE_APP_SANDBOX_SECRET_KEY` | Optional. "Connect with Stripe" for customers, through your Stripe App (see "Integrations"). |
 | `SLACK_`, `SALESFORCE_`, `HUBSPOT_`, `CALENDLY_` + `CLIENT_ID`, `CLIENT_SECRET` | Optional. OAuth apps for those integrations (see "Integrations"). |
 | `PLATFORM_ADMIN_EMAILS` | Comma-separated emails that can open `/admin/costs`. |
+| `REVIEW_ACCOUNT_EMAILS` | Optional. Accounts that sign in with an email and password at `/auth/review` (create them with a password in Supabase Auth), e.g. for an app marketplace's reviewers. Everyone else signs in with a code or Google. |
 | `CRON_SECRET` | Protects the cron routes, `/api/knowledge/worker` and `/api/billing/refill` (Vercel Cron sends it). Without it, a key derived from `WIDGET_SESSION_SECRET` is used, which Vercel Cron can't send. |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Optional. Telegram alerts for the team: sign-ups, subscriptions, cancellations, and errors in server actions, webhooks, crons and pages (`src/lib/notify.ts`, `src/instrumentation.ts`, `src/app/error.tsx`). Messages carry ids, never emails. |
 | `KNOWLEDGE_BROWSER`, `BROWSER_WS_ENDPOINT`, `CHROMIUM_PATH` | Where pages built in the browser are rendered (see "Knowledge"). |
