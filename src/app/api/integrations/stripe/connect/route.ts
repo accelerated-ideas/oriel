@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { authorizeAgent } from "@/lib/auth/access";
 import { getUser } from "@/lib/auth/get-user";
 import { signToken } from "@/lib/crypto";
-import { isStripeAppMode, stripeAppModes, stripeInstallUrl } from "@/lib/integrations/stripe";
+import { isStripeAppMode, stripeAppModes, stripeInstallUrl, stripeIntegrationOpenTo } from "@/lib/integrations/stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
   if (!user) return NextResponse.redirect(new URL("/auth", request.url));
   const access = await authorizeAgent(agentId);
   if (!access.ok) return NextResponse.json({ error: access.error }, { status: 403 });
+  if (!stripeIntegrationOpenTo(user.email)) return NextResponse.json({ error: "Stripe is coming soon." }, { status: 403 });
   if (!isStripeAppMode(mode) || !stripeAppModes().includes(mode)) {
     return NextResponse.json({ error: "Connect with Stripe isn't set up on this server." }, { status: 503 });
   }

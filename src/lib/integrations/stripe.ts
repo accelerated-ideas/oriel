@@ -6,6 +6,7 @@ import { STRIPE_OPERATION_ORDER, STRIPE_OPERATIONS } from "@/lib/actions/stripe-
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { accessToken, secretFrom, type TokenResponse } from "./providers/tokens";
 import { callProvider, type Connection } from "./store";
+import { IS_CLOUD } from "@/config/edition";
 
 // Two ways to connect a customer's Stripe account:
 // - Our Stripe App ("Connect with Stripe", integrations/stripe-app): they
@@ -54,6 +55,16 @@ export function isStripeAppMode(value: unknown): value is StripeAppMode {
 }
 
 export const STRIPE_CALLBACK_PATH = "/api/integrations/stripe/callback";
+
+// While the Stripe app waits for Stripe's review, only these accounts can
+// connect Stripe on the hosted service; everyone else sees it as coming soon.
+// Empty the list once the app is published. Self-hosted installs aren't limited.
+const STRIPE_INTEGRATION_EMAILS = ["stripe-test-account@useoriel.com"];
+
+export function stripeIntegrationOpenTo(email: string | null | undefined) {
+  if (!IS_CLOUD || STRIPE_INTEGRATION_EMAILS.length === 0) return true;
+  return Boolean(email) && STRIPE_INTEGRATION_EMAILS.includes(email!.trim().toLowerCase());
+}
 
 // The app's OAuth link, back to our callback with our signed state.
 export function stripeInstallUrl(mode: StripeAppMode, state: string) {

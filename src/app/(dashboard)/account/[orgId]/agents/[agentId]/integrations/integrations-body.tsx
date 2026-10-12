@@ -45,6 +45,7 @@ export function IntegrationsBody({
   stripe,
   stripeActions,
   appModes,
+  available,
   permissions,
   notice,
 }: {
@@ -53,6 +54,8 @@ export function IntegrationsBody({
   stripe: Pick<Integration, "id" | "metadata" | "config" | "created_at"> | null;
   stripeActions: SafeAction[];
   appModes: AppMode[];
+  // Off while the Stripe app waits for Stripe's review (stripeIntegrationOpenTo).
+  available: boolean;
   permissions: { resource: string; access: string }[];
   notice: string | null;
 }) {
@@ -134,6 +137,7 @@ export function IntegrationsBody({
                 {metadata.livemode ? "Live" : metadata.mode === "sandbox" ? "Sandbox" : "Test mode"}
               </Badge>
             )}
+            {!available && <Badge>Coming soon</Badge>}
           </div>
           <p className={cn("mt-0.5 text-[13.5px] text-muted", connected ? "truncate" : "text-pretty")}>
             {connected ? (
@@ -154,11 +158,11 @@ export function IntegrationsBody({
         </div>
         {connected ? (
           <ConfigureButton onClick={openConfigure} />
-        ) : (
+        ) : available ? (
           <Button size="sm" variant="outline" onClick={() => setConnecting(true)}>
             Connect
           </Button>
-        )}
+        ) : null}
       </Card>
 
       <Sheet open={connecting} onOpenChange={setConnecting}>

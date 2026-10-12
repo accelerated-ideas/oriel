@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { requireAgentPage } from "@/lib/auth/access";
 import { PROVIDERS } from "@/lib/integrations/catalog";
 import { availableProviders } from "@/lib/integrations/providers";
-import { STRIPE_KEY_PERMISSIONS, stripeAppModes } from "@/lib/integrations/stripe";
+import { STRIPE_KEY_PERMISSIONS, stripeAppModes, stripeIntegrationOpenTo } from "@/lib/integrations/stripe";
 import { emailConfigured } from "@/lib/email";
 import { PageBody } from "@/components/dashboard/app-shell";
 import { PageHeader } from "@/components/ui/misc";
@@ -24,7 +24,7 @@ export default async function IntegrationsPage({
 }) {
   const { orgId, agentId } = await params;
   const { stripe: notice, integration, result } = await searchParams;
-  const { agent } = await requireAgentPage(orgId, agentId);
+  const { agent, user } = await requireAgentPage(orgId, agentId);
   const [{ data: actions }, { data: stripe }, { data: services }, { data: serviceActions }] = await Promise.all([
     supabaseAdmin.from("actions").select("*").eq("agent_id", agentId).eq("kind", "stripe").order("created_at", { ascending: true }),
     supabaseAdmin
@@ -52,6 +52,8 @@ export default async function IntegrationsPage({
         stripe={stripe as Pick<Integration, "id" | "metadata" | "config" | "created_at"> | null}
         stripeActions={stripeActions}
         appModes={stripeAppModes()}
+        // A connection made before stays manageable.
+        available={stripeIntegrationOpenTo(user.email) || Boolean(stripe)}
         permissions={STRIPE_KEY_PERMISSIONS.map((permission) => ({ ...permission }))}
         notice={notice ?? null}
       />

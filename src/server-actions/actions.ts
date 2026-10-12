@@ -5,7 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { authorizeAgent } from "@/lib/auth/access";
 import { encryptSecret } from "@/lib/crypto";
 import { stripeClient } from "@/lib/actions/stripe";
-import { loadStripeConnection, saveStripeConnection, stripeAccountName, stripeApiKey } from "@/lib/integrations/stripe";
+import { loadStripeConnection, saveStripeConnection, stripeAccountName, stripeApiKey, stripeIntegrationOpenTo } from "@/lib/integrations/stripe";
 import { updateConfig } from "@/lib/integrations/store";
 import { BUILTIN_TOOL_NAMES } from "@/lib/runtime/tools";
 import { errorMessage } from "@/lib/utils";
@@ -172,6 +172,7 @@ export async function actionConnectStripe(agentId: string, secretKey: string): P
   try {
     const access = await authorizeAgent(agentId);
     if (!access.ok) return access;
+    if (!stripeIntegrationOpenTo(access.user.email)) return { ok: false, error: "Stripe is coming soon." };
     const key = secretKey.trim();
     if (!/^(sk|rk)_(live|test)_[A-Za-z0-9]+$/.test(key)) {
       return { ok: false, error: "Paste a Stripe secret or restricted key (starts with rk_ or sk_)." };
