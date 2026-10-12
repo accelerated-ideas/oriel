@@ -3,10 +3,11 @@
 // The models an assistant can reply with, voice and text alike. Each
 // assistant picks one, plus a fallback that takes over when it fails or
 // doesn't answer in time (agents.chat_model, agents.fallback_model).
-// Thinking is set per channel. All three think a little on calls too: it
-// costs time before the first word (Haiku 5.5: a median 0.76s without
-// thinking, 1.49s with low effort, in the call tests of October 8, 2026) but
-// made fewer slips (half the issues a reviewing model flagged).
+// Thinking is set per channel. Haiku and GPT-6 Luna answer without it, so
+// replies start sooner (Haiku 5.5: a median 0.76s to the first word without
+// thinking, 1.49s with low effort, in the call tests of October 8, 2026),
+// though low effort made fewer slips (half the issues a reviewing model
+// flagged). Gemini 3.8 Flash can't go below low.
 export type ChatProvider = "google" | "anthropic" | "openai";
 
 type PerChannel<T> = { voice: T; text: T };
@@ -34,7 +35,7 @@ const READ_PAGE_SPARINGLY =
 // The current model from each provider. Their previous versions (Gemini 3.5
 // Flash, Claude Haiku 4.5, GPT-5.4 mini) cost more, so they aren't offered.
 export const CHAT_MODELS = [
-  { id: "claude-haiku-5-5", name: "Claude Haiku 5.5", provider: "anthropic", effort: { voice: "low", text: "low" } },
+  { id: "claude-haiku-5-5", name: "Claude Haiku 5.5", provider: "anthropic", effort: { voice: "off", text: "off" } },
   {
     id: "gemini-3.8-flash",
     name: "Gemini 3.8 Flash",
@@ -46,7 +47,7 @@ export const CHAT_MODELS = [
     id: "gpt-6-luna",
     name: "GPT-6 Luna",
     provider: "openai",
-    reasoningEffort: { voice: "low", text: "low" },
+    reasoningEffort: { voice: "none", text: "none" },
     pageReading: READ_PAGE_SPARINGLY,
   },
 ] as const satisfies readonly ChatModel[];
