@@ -1,6 +1,13 @@
 import "server-only";
 import { BRAND } from "@/config/brand";
 
+// The sender, without the quotes a value pasted into a hosting dashboard can
+// keep (a .env file strips them, Vercel doesn't).
+function sender() {
+  const value = (process.env.RESEND_FROM_EMAIL ?? "").trim().replace(/^(["'])(.*)\1$/, "$2").trim();
+  return value || `${BRAND.name} <notifications@example.com>`;
+}
+
 export function emailConfigured() {
   return Boolean(process.env.RESEND_API_KEY);
 }
@@ -27,7 +34,7 @@ export async function sendEmail({
       method: "POST",
       headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, "content-type": "application/json" },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || `${BRAND.name} <notifications@example.com>`,
+        from: sender(),
         to: [to],
         ...(replyTo ? { reply_to: replyTo } : {}),
         subject,

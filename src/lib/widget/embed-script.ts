@@ -236,7 +236,9 @@ export function buildEmbedScript(appOrigin: string) {
     host.style.setProperty("--on-accent", onAccent(accent));
     host.style.setProperty("--mark", markOnDark(accent));
     styleEl.textContent = css;
-    dock.className = "dock " + side + (state.open ? " hidden" : "");
+    // Hidden until the settings arrive: an assistant that can't answer
+    // (switched off, out of messages) never shows, not even for a moment.
+    dock.className = "dock " + side + (state.open || !state.config ? " hidden" : "");
     panel.className = "panel " + side + (state.open ? " open" : "");
     talkButton.type = "button";
     talkButton.innerHTML = (look === "orb" ? '<span class="orb">' + WAVE + "</span>" : AVATARS[look]) + "<span></span>";
@@ -881,7 +883,7 @@ export function buildEmbedScript(appOrigin: string) {
       if (!state.agentId) { console.warn("[" + CONFIG.global + "] Missing agentId"); return; }
       state.pageKey = location.href;
       // Drawn the way it looked last time, so it doesn't change shape or
-      // color when the settings arrive.
+      // color when the settings arrive; it fades in once they do.
       var seen = store.get(localStorage, "look:" + state.agentId) || {};
       render({
         launcherLabel: options.label || "Ask anything",
@@ -931,7 +933,7 @@ export function buildEmbedScript(appOrigin: string) {
         panel.className = panel.className.replace(" open", "").replace(" fade", "");
         // The shape has landed exactly on the launcher: swap them in the same frame.
         dock.style.transition = "none";
-        dock.className = dock.className.replace(" hidden", "");
+        if (state.config) dock.className = dock.className.replace(" hidden", "");
         void dock.offsetWidth;
         dock.style.transition = "";
       });

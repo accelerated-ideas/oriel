@@ -13,6 +13,7 @@ import { appUrl, BRAND } from "@/config/brand";
 import { IS_CLOUD } from "@/config/edition";
 import { DEFAULT_VOICE_ID } from "@/config/voices";
 import { APP_SITE_MAP } from "@/content/app-assistant/site-map";
+import { refillMonthlyCredits } from "@/lib/billing/credits";
 import { randomToken } from "@/lib/crypto";
 import { indexKnowledgeSource } from "@/lib/knowledge/index-source";
 import { embedSitePages } from "@/lib/site-map/search";
@@ -54,9 +55,19 @@ async function workspace(admin: { id: string }) {
     id = data as string;
     console.log(`Created the "${name}" workspace.`);
   }
-  // Our own assistant shouldn't run into plan limits.
+  // Our own assistant shouldn't run into plan limits: a comped Premium plan,
+  // whose messages the refill (src/lib/billing/credits.ts) grants each month.
   if (IS_CLOUD) {
-    await supabaseAdmin.from("organizations").update({ plan_id: "premium", subscription_status: "active" }).eq("id", id);
+    const { data: current } = await supabaseAdmin.from("organizations").select("credits_renew_at").eq("id", id).single();
+    await supabaseAdmin
+      .from("organizations")
+      .update({
+        plan_id: "premium",
+        subscription_status: "active",
+        ...(current?.credits_renew_at ? {} : { credits_renew_at: new Date().toISOString() }),
+      })
+      .eq("id", id);
+    await refillMonthlyCredits();
   }
   return id;
 }
