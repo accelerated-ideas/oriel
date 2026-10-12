@@ -23,11 +23,12 @@ export async function updateSession(request: NextRequest) {
   );
 
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    // Refreshes an expired session and checks its signature locally (the
+    // project signs with asymmetric keys), with no call to the auth server.
+    // Pages still ask the server who the user is (src/lib/auth/get-user.ts).
+    const { data } = await supabase.auth.getClaims();
 
-    if (!user && request.nextUrl.pathname.startsWith("/account")) {
+    if (!data?.claims && request.nextUrl.pathname.startsWith("/account")) {
       const url = request.nextUrl.clone();
       url.pathname = "/auth";
       url.search = "";

@@ -9,7 +9,6 @@ import { countAssistants, countMembers, getWorkspaceBilling } from "@/lib/billin
 import { messageAllowance, planState, type PlanState } from "@/lib/billing/plan-state";
 import { syncCheckoutSession } from "@/lib/billing/stripe-billing";
 import { PageBody } from "@/components/dashboard/app-shell";
-import { WorkspaceShell } from "@/components/dashboard/workspace-shell";
 import { Card, PageHeader } from "@/components/ui/misc";
 import { cn } from "@/lib/utils";
 import { ManageBillingButton, PlanPicker } from "./plan-picker";
@@ -98,67 +97,65 @@ export default async function BillingPage({
   const warning = state.kind === "past-due" || state.kind === "inactive";
 
   return (
-    <WorkspaceShell context={context}>
-      <PageBody>
-        <PageHeader
-          title="Billing"
-          actions={workspace.stripe_customer_id && canManage ? <ManageBillingButton organizationId={orgId} /> : undefined}
-        />
+    <PageBody>
+      <PageHeader
+        title="Billing"
+        actions={workspace.stripe_customer_id && canManage ? <ManageBillingButton organizationId={orgId} /> : undefined}
+      />
 
-        {checkout && state.kind === "active" && (
-          <div className="mt-6 flex items-center gap-2.5 rounded-xl bg-success-soft px-4 py-3 text-[14px] text-success-ink">
-            <CircleCheck className="size-4 shrink-0" /> You&apos;re on {state.plan.name}. Thanks for subscribing.
+      {checkout && state.kind === "active" && (
+        <div className="mt-6 flex items-center gap-2.5 rounded-xl bg-success-soft px-4 py-3 text-[14px] text-success-ink">
+          <CircleCheck className="size-4 shrink-0" /> You&apos;re on {state.plan.name}. Thanks for subscribing.
+        </div>
+      )}
+
+      <Card className="mt-8 overflow-hidden">
+        <div className="flex flex-col gap-1 p-6 sm:p-7">
+          <h2 className="font-display text-[34px] leading-tight">
+            {state.kind === "trial" ? "Free trial" : state.kind === "inactive" ? "No plan" : state.plan.name}
+          </h2>
+          <p className={cn("flex items-center gap-2 text-[14.5px]", warning ? "text-danger" : "text-ink-2")}>
+            {warning && <TriangleAlert className="size-4 shrink-0" />}
+            {statusLine(state)}
+          </p>
+        </div>
+        {state.kind !== "inactive" && (
+          <div className="grid gap-6 border-t border-line bg-zinc-50/70 p-6 sm:grid-cols-3 sm:p-7">
+            <Meter
+              label={
+                state.kind === "trial"
+                  ? "Messages in trial"
+                  : allowance.renewsAt
+                    ? `Messages until ${format(allowance.renewsAt, "MMM d")}`
+                    : "Messages"
+              }
+              used={Math.max(0, allowance.limit - allowance.left)}
+              limit={allowance.limit}
+              runsOut
+            />
+            <Meter label="Assistants" used={assistants} limit={limits.assistants} />
+            <Meter label="Members" used={people.members + people.invitations} limit={limits.seats} />
           </div>
         )}
+      </Card>
 
-        <Card className="mt-8 overflow-hidden">
-          <div className="flex flex-col gap-1 p-6 sm:p-7">
-            <h2 className="font-display text-[34px] leading-tight">
-              {state.kind === "trial" ? "Free trial" : state.kind === "inactive" ? "No plan" : state.plan.name}
-            </h2>
-            <p className={cn("flex items-center gap-2 text-[14.5px]", warning ? "text-danger" : "text-ink-2")}>
-              {warning && <TriangleAlert className="size-4 shrink-0" />}
-              {statusLine(state)}
-            </p>
-          </div>
-          {state.kind !== "inactive" && (
-            <div className="grid gap-6 border-t border-line bg-zinc-50/70 p-6 sm:grid-cols-3 sm:p-7">
-              <Meter
-                label={
-                  state.kind === "trial"
-                    ? "Messages in trial"
-                    : allowance.renewsAt
-                      ? `Messages until ${format(allowance.renewsAt, "MMM d")}`
-                      : "Messages"
-                }
-                used={Math.max(0, allowance.limit - allowance.left)}
-                limit={allowance.limit}
-                runsOut
-              />
-              <Meter label="Assistants" used={assistants} limit={limits.assistants} />
-              <Meter label="Members" used={people.members + people.invitations} limit={limits.seats} />
-            </div>
-          )}
-        </Card>
-
-        <PlanPicker
-          organizationId={orgId}
-          canManage={canManage}
-          plans={paidPlans}
-          current={
-            state.kind === "active" || state.kind === "past-due"
-              ? {
-                  planId: state.plan.id,
-                  period: state.period,
-                  next:
-                    state.kind === "active" && state.next
-                      ? { planId: state.next.plan.id, period: state.next.period, at: state.next.at.toISOString() }
-                      : null,
-                }
-              : null
-          }
-        />
-      </PageBody>
-    </WorkspaceShell>
+      <PlanPicker
+        organizationId={orgId}
+        canManage={canManage}
+        plans={paidPlans}
+        current={
+          state.kind === "active" || state.kind === "past-due"
+            ? {
+                planId: state.plan.id,
+                period: state.period,
+                next:
+                  state.kind === "active" && state.next
+                    ? { planId: state.next.plan.id, period: state.next.period, at: state.next.at.toISOString() }
+                    : null,
+              }
+            : null
+        }
+      />
+    </PageBody>
   );
 }

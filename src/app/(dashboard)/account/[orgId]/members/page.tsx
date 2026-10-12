@@ -7,7 +7,6 @@ import { planState } from "@/lib/billing/plan-state";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { invitationLink } from "@/lib/workspaces/invitations";
 import { PageBody } from "@/components/dashboard/app-shell";
-import { WorkspaceShell } from "@/components/dashboard/workspace-shell";
 import { PageHeader } from "@/components/ui/misc";
 import type { OrganizationRole } from "@/lib/types";
 import { InviteButton, MembersBody } from "./members-body";
@@ -55,34 +54,32 @@ export default async function MembersPage({ params }: { params: Promise<{ orgId:
   const used = members.length + invitations.filter((invitation) => new Date(invitation.expiresAt) > new Date()).length;
 
   return (
-    <WorkspaceShell context={context}>
-      <PageBody>
-        <PageHeader
-          title="Members"
-          description={
-            seats !== null && state ? (
-              <>
-                {used} of {seats} seats used on the {state.kind === "trial" ? "trial" : `${state.plan.name} plan`}.{" "}
-                {used >= seats && canManage && (
-                  <Link href={`/account/${orgId}/billing`} className="font-medium text-accent-ink hover:underline">
-                    Upgrade for more
-                  </Link>
-                )}
-              </>
-            ) : (
-              `Everyone who works on ${context.membership.organization.name}'s assistants.`
-            )
-          }
-          actions={canManage ? <InviteButton organizationId={orgId} /> : undefined}
-        />
-        <MembersBody
-          organizationId={orgId}
-          currentUserId={context.user.id}
-          canManage={canManage}
-          members={members}
-          invitations={invitations}
-        />
-      </PageBody>
-    </WorkspaceShell>
+    <PageBody>
+      <PageHeader
+        title="Members"
+        description={
+          seats !== null && state ? (
+            <>
+              {used} of {seats} seats used on the {state.kind === "trial" ? "trial" : `${state.plan.name} plan`}.{" "}
+              {used >= seats && canManage && (
+                <Link href={`/account/${orgId}/billing`} className="font-medium text-accent-ink hover:underline">
+                  Upgrade for more
+                </Link>
+              )}
+            </>
+          ) : (
+            `Everyone who works on ${context.membership.organization.name}'s assistants.`
+          )
+        }
+        actions={canManage ? <InviteButton organizationId={orgId} /> : undefined}
+      />
+      <MembersBody
+        organizationId={orgId}
+        currentUserId={context.user.id}
+        canManage={canManage}
+        members={members}
+        invitations={invitations}
+      />
+    </PageBody>
   );
 }

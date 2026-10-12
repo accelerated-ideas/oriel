@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import {
   BarChart3,
   BookOpen,
@@ -23,7 +23,6 @@ import { UserMenu, type UserMenuProps } from "@/components/dashboard/user-menu";
 import { cn } from "@/lib/utils";
 
 export type ShellProps = Omit<UserMenuProps, "onNavigate"> & {
-  currentAgentId?: string;
   // Platform admins also get a link to what everything costs us.
   showCosts?: boolean;
   children: React.ReactNode;
@@ -73,13 +72,15 @@ function SidebarLink({
 }
 
 function SidebarContent({
-  currentAgentId,
   showCosts,
   onNavigate,
   ...account
 }: Omit<ShellProps, "children"> & { onNavigate?: () => void }) {
   const { organization } = account;
   const pathname = usePathname();
+  // The shell stays put across pages, so it follows the URL to know whether
+  // it's inside an assistant.
+  const { agentId: currentAgentId } = useParams<{ agentId?: string }>();
   const base = `/account/${organization.id}/agents`;
 
   return (

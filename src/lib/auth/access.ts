@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -10,7 +11,7 @@ export type Membership = {
   role: OrganizationRole;
 };
 
-export async function getMemberships(userId: string): Promise<Membership[]> {
+export const getMemberships = cache(async (userId: string): Promise<Membership[]> => {
   const { data } = await supabaseAdmin
     .from("users_organizations")
     .select("role, organizations(id, name)")
@@ -23,11 +24,12 @@ export async function getMemberships(userId: string): Promise<Membership[]> {
       role: row.role as OrganizationRole,
       organization: row.organizations as unknown as { id: string; name: string },
     }));
-}
+});
 
-// Page guard: resolves the signed-in user and their membership of `orgId`,
-// redirecting when either is missing.
-export async function requireOrgPage(orgId: string) {
+// Page guards, run once per request however many layouts and pages ask.
+// Resolves the signed-in user and their membership of `orgId`, redirecting
+// when either is missing.
+export const requireOrgPage = cache(async (orgId: string) => {
   const user = await getUser();
   if (!user) redirect("/auth");
 
@@ -36,20 +38,19 @@ export async function requireOrgPage(orgId: string) {
   if (!membership) redirect("/account");
 
   return { user, membership, memberships };
-}
+});
 
-export async function requireAgentPage(orgId: string, agentId: string) {
-  const context = await requireOrgPage(orgId);
-  const { data: agent } = await supabaseAdmin
-    .from("agents")
-    .select("*")
-    .eq("id", agentId)
-    .eq("organization_id", orgId)
-    .maybeSingle();
+export const requireAgentPage = cache(async (orgId: string, agentId: string) => {
+  // The assistant is looked up alongside the membership check, and only
+  // returned once that passes.
+  const [context, { data: agent }] = await Promise.all([
+    requireOrgPage(orgId),
+    supabaseAdmin.from("agents").select("*").eq("id", agentId).eq("organization_id", orgId).maybeSingle(),
+  ]);
 
   if (!agent) redirect(`/account/${orgId}/agents`);
   return { ...context, agent: agent as Agent };
-}
+});
 
 type AccessResult<T> = { ok: true; user: User } & T;
 type AccessError = { ok: false; error: string };

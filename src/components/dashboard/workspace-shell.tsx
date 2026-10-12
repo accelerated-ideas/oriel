@@ -21,11 +21,9 @@ async function billingSummary(organizationId: string) {
 // The dashboard frame for one workspace (sidebar, account menu, main panel).
 export async function WorkspaceShell({
   context,
-  currentAgentId,
   children,
 }: {
   context: { user: User; membership: Membership; memberships: Membership[] };
-  currentAgentId?: string;
   children: React.ReactNode;
 }) {
   const { user, membership, memberships } = context;
@@ -37,7 +35,6 @@ export async function WorkspaceShell({
       workspaces={memberships.map((m) => m.organization)}
       billing={await billingSummary(membership.organization.id)}
       showCosts={isPlatformAdmin(user.email)}
-      currentAgentId={currentAgentId}
     >
       {children}
     </AppShell>
