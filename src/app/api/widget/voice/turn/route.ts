@@ -59,10 +59,13 @@ export async function POST(request: NextRequest) {
   }
 
   const [{ data: agent }] = await Promise.all([
-    supabaseAdmin.from("agents").select("voice_id, greeting, organization_id").eq("id", session.agentId).single(),
+    supabaseAdmin.from("agents").select("voice_id, greeting, organization_id, voice_enabled").eq("id", session.agentId).single(),
     body.interrupted?.length ? applyInterruption(conversationId, body.interrupted) : null,
   ]);
   if (!agent) return NextResponse.json({ error: "Assistant not found" }, { status: 404 });
+  if (agent.voice_enabled === false) {
+    return NextResponse.json({ error: "Voice calls are turned off for this assistant." }, { status: 403 });
+  }
 
   const message = body.message?.trim();
   const toolResults = body.toolResults ?? [];

@@ -20,7 +20,7 @@ A workspace holds your assistants, your team and your plan. Your first workspace
 Each assistant lives on one website or app, with its own knowledge, voice and actions.
 
 - Clicking an assistant on the Assistants page opens its Playground.
-- Create one with New assistant on the Assistants page. Give it a name (what it calls itself when it talks to visitors) and, optionally, your website. With a website, it reads up to 15 pages right away so it knows something from the start.
+- Create one with New assistant on the Assistants page. Give it a name (what it calls itself when it talks to visitors) and, optionally, your website. With a website, it reads up to 15 pages right away so it knows something from the start. It then opens on its Playground, ready to try.
 - The Live switch in the top bar turns the assistant on or off on your site. When it's off, the bubble doesn't show on your site.
 - Playground, first in the sidebar, is where you try it.
 
@@ -142,12 +142,12 @@ Each section has its own Save button, which appears once something in it changes
 - Identity: the assistant's name (required), your product name (optional; it can also learn about your product from Instructions and Knowledge) and your website.
 - Opening line: the first thing it says when someone starts a call or opens the chat.
 - Instructions: rules, tone and context it should always follow. Facts about your product belong in Knowledge.
-- Voice: choose a voice and play samples. Language: calls listen and speak in this language; text chat follows the visitor's language.
+- Voice: Voice calls turns calls on or off (on to start); off, the assistant is a text chat, and typing stays on. With calls on, choose a voice and play samples. Language: calls listen and speak in this language; text chat follows the visitor's language.
 - Model: the AI model that writes its replies, on calls and in chat. Choose Claude Haiku 5.5 (the default), Gemini 3.8 Flash or GPT-6 Luna.
   - Fallback: another model that answers instead if the first one fails or hasn't started replying after 12 seconds, so the visitor still gets an answer. It's Gemini 3.8 Flash unless you change it, and you can turn it off with No fallback.
   - A model that can't be picked shows which API key the server needs. On a self-hosted install, set ANTHROPIC_API_KEY for Claude or OPENAI_API_KEY for GPT.
 - Conversation:
-  - Allow typing lets visitors switch from voice to text.
+  - Allow typing lets visitors switch from voice to text. It's always on while voice calls are off.
   - Read the current page shares the visible text and links of the visitor's page, so answers match what they see and the assistant can open items listed there.
   - Dig into problems makes it ask follow-up questions when someone is stuck and log what it learns in Insights.
 

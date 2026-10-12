@@ -23,6 +23,7 @@ export type Agent = {
   launcher_position: "left" | "center" | "right";
   show_branding: boolean;
   text_mode_enabled: boolean;
+  voice_enabled: boolean;
   share_page_content: boolean;
   feedback_interviews_enabled: boolean;
   builtin_tools: Partial<Record<BuiltinToolKey, boolean>>;

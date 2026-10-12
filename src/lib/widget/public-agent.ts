@@ -14,7 +14,9 @@ export function publicAgentConfig(agent: Agent, { branding }: { branding: boolea
     launcherLabel: agent.launcher_label,
     launcherPosition: agent.launcher_position,
     textModeEnabled: agent.text_mode_enabled,
-    voiceEnabled: Boolean(process.env.ELEVENLABS_API_KEY),
+    // Off for the assistant (Behavior), or no voice on this server. Rows from
+    // before the setting existed count as on.
+    voiceEnabled: agent.voice_enabled !== false && Boolean(process.env.ELEVENLABS_API_KEY),
     language: agent.language,
     branding,
   };

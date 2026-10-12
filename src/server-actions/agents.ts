@@ -85,6 +85,7 @@ const updateSchema = z
     launcher_position: z.enum(["left", "center", "right"]),
     show_branding: z.boolean(),
     text_mode_enabled: z.boolean(),
+    voice_enabled: z.boolean(),
     share_page_content: z.boolean(),
     feedback_interviews_enabled: z.boolean(),
     handoff_email: z.string().trim().email("Enter a valid email").max(320).or(z.literal("")).nullable(),
@@ -146,6 +147,11 @@ export async function actionUpdateAgent(agentId: string, patch: z.input<typeof u
     }
     if (data.show_branding === false && access.agent.show_branding && !(await canRemoveBranding(access.agent.organization_id))) {
       return { ok: false, error: `Removing "Powered by ${BRAND.name}" isn't part of your plan.` };
+    }
+    // Visitors always need a way to talk: with calls off, typing stays on.
+    if (data.voice_enabled === false) data.text_mode_enabled = true;
+    if (data.text_mode_enabled === false && (data.voice_enabled ?? access.agent.voice_enabled) === false) {
+      return { ok: false, error: "Turn on voice calls first: with them off, typing is how visitors talk." };
     }
     if (data.handoff_email === "") data.handoff_email = null;
     if (data.handoff_webhook_url === "") data.handoff_webhook_url = null;

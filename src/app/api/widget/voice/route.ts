@@ -49,9 +49,12 @@ export async function POST(request: NextRequest) {
 
   const { data: agent } = await supabaseAdmin
     .from("agents")
-    .select("language, assistant_name, site_name")
+    .select("language, assistant_name, site_name, voice_enabled")
     .eq("id", session.agentId)
     .single();
+  if (agent?.voice_enabled === false) {
+    return NextResponse.json({ error: "Voice calls are turned off for this assistant." }, { status: 403 });
+  }
   const language = agent?.language ?? "en";
   // Names the recognizer should expect.
   const names = [agent?.assistant_name, agent?.site_name].filter((term): term is string => Boolean(term?.trim()));

@@ -32,7 +32,7 @@ const SECTION_FIELDS = {
   identity: ["assistant_name", "site_name", "site_url"],
   greeting: ["greeting"],
   instructions: ["instructions"],
-  voice: ["voice_id", "language"],
+  voice: ["voice_enabled", "voice_id", "language"],
   model: ["chat_model", "fallback_model"],
   conversation: ["text_mode_enabled", "share_page_content", "feedback_interviews_enabled"],
 } as const;
@@ -68,6 +68,7 @@ export function BehaviorForm({ agent, availableModels }: { agent: Agent; availab
       language: agent.language,
       voice_id: agent.voice_id,
       text_mode_enabled: agent.text_mode_enabled,
+      voice_enabled: agent.voice_enabled !== false,
       share_page_content: agent.share_page_content,
       feedback_interviews_enabled: agent.feedback_interviews_enabled,
       chat_model: agent.chat_model as ChatModelId,
@@ -196,63 +197,73 @@ export function BehaviorForm({ agent, availableModels }: { agent: Agent; availab
       </SectionCard>
 
       <SectionCard title="Voice" description="How it sounds on calls, and the language it listens and speaks in." footer={footer("voice")}>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {VOICE_OPTIONS.map((voice) => {
-            const selected = values.voice_id === voice.id;
-            return (
-              <div
-                key={voice.id}
-                role="radio"
-                aria-checked={selected}
-                tabIndex={0}
-                onClick={() => set("voice_id", voice.id)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    set("voice_id", voice.id);
-                  }
-                }}
-                className={cn(
-                  "flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3.5 py-3 transition-[background-color,box-shadow] duration-150",
-                  selected
-                    ? "bg-accent-soft/60 shadow-[0_0_0_1.5px_var(--color-accent)]"
-                    : "bg-surface shadow-border hover:shadow-border-hover",
-                )}
-              >
-                <div>
-                  <p className="text-[14px] font-medium">{voice.name}</p>
-                  <p className="text-[12.5px] text-muted">{voice.description}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    preview(voice.id, voice.previewUrl);
-                  }}
-                  className={cn(
-                    "flex size-8 items-center justify-center rounded-full transition-[background-color,color,scale] duration-150 active:scale-[0.96]",
-                    playing === voice.id ? "bg-accent text-white" : "bg-surface text-ink shadow-border hover:bg-zinc-50",
-                  )}
-                  aria-label={playing === voice.id ? `Stop ${voice.name}` : `Play ${voice.name}`}
-                >
-                  {playing === voice.id ? <Pause className="size-3.5" /> : <Play className="size-3.5 translate-x-px" />}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-        <Field
-          label="Language"
-          htmlFor="language"
-          hint="Calls listen and speak in this language. In text chat it follows whatever language the visitor writes in."
-        >
-          <Select
-            id="language"
-            value={values.language}
-            onValueChange={(value) => set("language", value)}
-            options={LANGUAGE_OPTIONS.map((language) => ({ value: language.code, label: `${language.flag}  ${language.name}` }))}
-          />
-        </Field>
+        <ToggleRow
+          title="Voice calls"
+          description={`Visitors can talk to ${values.assistant_name || "the assistant"} out loud. Off, it's a text chat.`}
+          checked={values.voice_enabled}
+          onChange={(value) => set("voice_enabled", value)}
+        />
+        {values.voice_enabled && (
+          <>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {VOICE_OPTIONS.map((voice) => {
+                const selected = values.voice_id === voice.id;
+                return (
+                  <div
+                    key={voice.id}
+                    role="radio"
+                    aria-checked={selected}
+                    tabIndex={0}
+                    onClick={() => set("voice_id", voice.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        set("voice_id", voice.id);
+                      }
+                    }}
+                    className={cn(
+                      "flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3.5 py-3 transition-[background-color,box-shadow] duration-150",
+                      selected
+                        ? "bg-accent-soft/60 shadow-[0_0_0_1.5px_var(--color-accent)]"
+                        : "bg-surface shadow-border hover:shadow-border-hover",
+                    )}
+                  >
+                    <div>
+                      <p className="text-[14px] font-medium">{voice.name}</p>
+                      <p className="text-[12.5px] text-muted">{voice.description}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        preview(voice.id, voice.previewUrl);
+                      }}
+                      className={cn(
+                        "flex size-8 items-center justify-center rounded-full transition-[background-color,color,scale] duration-150 active:scale-[0.96]",
+                        playing === voice.id ? "bg-accent text-white" : "bg-surface text-ink shadow-border hover:bg-zinc-50",
+                      )}
+                      aria-label={playing === voice.id ? `Stop ${voice.name}` : `Play ${voice.name}`}
+                    >
+                      {playing === voice.id ? <Pause className="size-3.5" /> : <Play className="size-3.5 translate-x-px" />}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            <Field
+              label="Language"
+              htmlFor="language"
+              hint="Calls listen and speak in this language. In text chat it follows whatever language the visitor writes in."
+            >
+              <Select
+                id="language"
+                value={values.language}
+                onValueChange={(value) => set("language", value)}
+                options={LANGUAGE_OPTIONS.map((language) => ({ value: language.code, label: `${language.flag}  ${language.name}` }))}
+              />
+            </Field>
+          </>
+        )}
       </SectionCard>
 
       <SectionCard title="Model" description="The AI model that writes its replies, on calls and in chat." footer={footer("model")}>
@@ -302,8 +313,13 @@ export function BehaviorForm({ agent, availableModels }: { agent: Agent; availab
       <SectionCard title="Conversation" footer={footer("conversation")}>
         <ToggleRow
           title="Allow typing"
-          description="Visitors can switch from voice to text at any time."
-          checked={values.text_mode_enabled}
+          description={
+            initial.voice_enabled
+              ? "Visitors can switch from voice to text at any time."
+              : "Always on while voice calls are off, so visitors can talk to it."
+          }
+          checked={values.text_mode_enabled || !initial.voice_enabled}
+          disabled={!initial.voice_enabled}
           onChange={(value) => set("text_mode_enabled", value)}
         />
         <ToggleRow
@@ -327,20 +343,22 @@ function ToggleRow({
   title,
   description,
   checked,
+  disabled,
   onChange,
 }: {
   title: string;
   description: string;
   checked: boolean;
+  disabled?: boolean;
   onChange: (value: boolean) => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-start justify-between gap-6">
+    <label className={cn("flex items-start justify-between gap-6", disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer")}>
       <span>
         <span className="block text-[14px] font-medium">{title}</span>
         <span className="mt-0.5 block text-[13px] leading-relaxed text-muted">{description}</span>
       </span>
-      <Switch checked={checked} onCheckedChange={onChange} className="mt-0.5" />
+      <Switch checked={checked} disabled={disabled} onCheckedChange={onChange} className="mt-0.5" />
     </label>
   );
 }

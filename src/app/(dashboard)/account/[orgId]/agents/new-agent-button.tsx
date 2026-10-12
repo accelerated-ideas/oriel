@@ -23,7 +23,7 @@ export function NewAgentButton({ organizationId, defaultOpen }: { organizationId
     await runAction(() => actionCreateAgent({ organizationId, assistantName, siteUrl, importSite }), {
       onSuccess: (result) => {
         setOpen(false);
-        router.push(`/account/${organizationId}/agents/${result.data.id}/${siteUrl ? "knowledge" : "behavior"}`);
+        router.push(`/account/${organizationId}/agents/${result.data.id}/playground`);
       },
     });
     setLoading(false);
