@@ -8,7 +8,9 @@ import type { SubscriptionPlan } from "./plans";
 // live key, so a preview deployment on a sandbox key still checks out. Only the
 // server reads the key; the browser never needs these IDs.
 function getEnvStripeId({ dev, prod }: { dev: string; prod: string }) {
-  return (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live_") ? prod : dev;
+  return (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live_")
+    ? prod
+    : dev;
 }
 
 export const subscriptionPlans: SubscriptionPlan[] = [
@@ -52,9 +54,18 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     is_free_plan: false,
     price_config: { price: 39, annual_price: 32, annual_total: 384 },
     stripe_config: {
-      product_id: getEnvStripeId({ dev: "oriel_starter", prod: "" }),
-      price_id: getEnvStripeId({ dev: "price_1UOdmHD45cHBgbcbrU1jgiGW", prod: "" }),
-      annual_price_id: getEnvStripeId({ dev: "price_1UOdmID45cHBgbcb1NwLxuEj", prod: "" }),
+      product_id: getEnvStripeId({
+        dev: "oriel_starter",
+        prod: "oriel_starter",
+      }),
+      price_id: getEnvStripeId({
+        dev: "price_1UOdmHD45cHBgbcbrU1jgiGW",
+        prod: "price_1UOf62Rc8V4QseQcoJ1gnFhw",
+      }),
+      annual_price_id: getEnvStripeId({
+        dev: "price_1UOdmID45cHBgbcb1NwLxuEj",
+        prod: "price_1UOf61Rc8V4QseQcV28RDKu1",
+      }),
     },
     includes: {
       messages_per_month: 1_000,
@@ -76,13 +87,26 @@ export const subscriptionPlans: SubscriptionPlan[] = [
       is_recommended: false,
       is_publicly_visible: true,
       feature_list: [
-        { label: "1,000 messages a month", tooltip: "Messages visitors send, by voice or text. Replies, and the goodbye that ends a conversation, don't count." },
+        {
+          label: "1,000 messages a month",
+          tooltip:
+            "Messages visitors send, by voice or text. Replies, and the goodbye that ends a conversation, don't count.",
+        },
         { label: "1 assistant", tooltip: null },
         { label: "2 team members", tooltip: null },
         { label: "Voice calls and text chat", tooltip: null },
-        { label: "Knowledge from your site, docs and files", tooltip: "Up to about 400 pages." },
-        { label: "Refresh pages weekly", tooltip: "Re-read any page from your site once a week." },
-        { label: "Takes people to pages and points at buttons", tooltip: "A site map of up to 200 pages per assistant." },
+        {
+          label: "Knowledge from your site, docs and files",
+          tooltip: "Up to about 400 pages.",
+        },
+        {
+          label: "Refresh pages weekly",
+          tooltip: "Re-read any page from your site once a week.",
+        },
+        {
+          label: "Takes people to pages and points at buttons",
+          tooltip: "A site map of up to 200 pages per assistant.",
+        },
         { label: "Insights and follow-ups for your team", tooltip: null },
       ],
     },
@@ -94,9 +118,15 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     is_free_plan: false,
     price_config: { price: 99, annual_price: 82, annual_total: 984 },
     stripe_config: {
-      product_id: getEnvStripeId({ dev: "oriel_pro", prod: "" }),
-      price_id: getEnvStripeId({ dev: "price_1UOdmJD45cHBgbcbVklcH8Cx", prod: "" }),
-      annual_price_id: getEnvStripeId({ dev: "price_1UOdmJD45cHBgbcboEkqmD8g", prod: "" }),
+      product_id: getEnvStripeId({ dev: "oriel_pro", prod: "oriel_pro" }),
+      price_id: getEnvStripeId({
+        dev: "price_1UOdmJD45cHBgbcbVklcH8Cx",
+        prod: "price_1UOf63Rc8V4QseQcspomsACD",
+      }),
+      annual_price_id: getEnvStripeId({
+        dev: "price_1UOdmJD45cHBgbcboEkqmD8g",
+        prod: "price_1UOf61Rc8V4QseQcpOZtWrua",
+      }),
     },
     includes: {
       messages_per_month: 3_000,
@@ -118,12 +148,24 @@ export const subscriptionPlans: SubscriptionPlan[] = [
       is_recommended: true,
       is_publicly_visible: true,
       feature_list: [
-        { label: "3,000 messages a month", tooltip: "Messages visitors send, by voice or text. Replies, and the goodbye that ends a conversation, don't count." },
+        {
+          label: "3,000 messages a month",
+          tooltip:
+            "Messages visitors send, by voice or text. Replies, and the goodbye that ends a conversation, don't count.",
+        },
         { label: "3 assistants", tooltip: null },
         { label: "5 team members", tooltip: null },
         { label: "Everything in Starter", tooltip: null },
-        { label: "Daily refresh, automatic every week", tooltip: "Re-read pages once a day, and your site is re-read for you every week." },
-        { label: "Site maps of 1,000 pages", tooltip: "Per assistant: the places in your product it can take people to." },
+        {
+          label: "Daily refresh, automatic every week",
+          tooltip:
+            "Re-read pages once a day, and your site is re-read for you every week.",
+        },
+        {
+          label: "Site maps of 1,000 pages",
+          tooltip:
+            "Per assistant: the places in your product it can take people to.",
+        },
         { label: "Actions with your API and in your app", tooltip: null },
         { label: "Stripe billing for signed-in users", tooltip: null },
         { label: "Verified signed-in users", tooltip: null },
@@ -137,9 +179,18 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     is_free_plan: false,
     price_config: { price: 299, annual_price: 249, annual_total: 2_988 },
     stripe_config: {
-      product_id: getEnvStripeId({ dev: "oriel_premium", prod: "" }),
-      price_id: getEnvStripeId({ dev: "price_1UOdmLD45cHBgbcbS5lQoNiO", prod: "" }),
-      annual_price_id: getEnvStripeId({ dev: "price_1UOdmLD45cHBgbcb1Mi0keEg", prod: "" }),
+      product_id: getEnvStripeId({
+        dev: "oriel_premium",
+        prod: "oriel_premium",
+      }),
+      price_id: getEnvStripeId({
+        dev: "price_1UOdmLD45cHBgbcbS5lQoNiO",
+        prod: "price_1UOf65Rc8V4QseQctWLtnEhn",
+      }),
+      annual_price_id: getEnvStripeId({
+        dev: "price_1UOdmLD45cHBgbcb1Mi0keEg",
+        prod: "price_1UOf64Rc8V4QseQcV3hN4SE4",
+      }),
     },
     includes: {
       messages_per_month: 10_000,
@@ -161,14 +212,29 @@ export const subscriptionPlans: SubscriptionPlan[] = [
       is_recommended: false,
       is_publicly_visible: true,
       feature_list: [
-        { label: "10,000 messages a month", tooltip: "Messages visitors send, by voice or text. Replies, and the goodbye that ends a conversation, don't count." },
+        {
+          label: "10,000 messages a month",
+          tooltip:
+            "Messages visitors send, by voice or text. Replies, and the goodbye that ends a conversation, don't count.",
+        },
         { label: "10 assistants", tooltip: null },
         { label: "15 team members", tooltip: null },
         { label: "Everything in Pro", tooltip: null },
         { label: "Knowledge up to about 8,000 pages", tooltip: null },
-        { label: "Site maps of 5,000 pages", tooltip: "Per assistant: the places in your product it can take people to." },
-        { label: "Hourly refresh, automatic every day", tooltip: "Re-read pages once an hour, and your site is re-read for you every day." },
-        { label: `Remove "Powered by ${BRAND.name}"`, tooltip: "From the assistant on your site." },
+        {
+          label: "Site maps of 5,000 pages",
+          tooltip:
+            "Per assistant: the places in your product it can take people to.",
+        },
+        {
+          label: "Hourly refresh, automatic every day",
+          tooltip:
+            "Re-read pages once an hour, and your site is re-read for you every day.",
+        },
+        {
+          label: `Remove "Powered by ${BRAND.name}"`,
+          tooltip: "From the assistant on your site.",
+        },
         { label: "Priority support", tooltip: null },
       ],
     },
