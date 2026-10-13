@@ -133,13 +133,6 @@ Services connect with OAuth, a key, or both. For OAuth, register `<NEXT_PUBLIC_A
 
 </details>
 
-## Known limits
-
-- Calls have been tested with a simulated microphone, not yet with real mics and speakers.
-- After a page load, some browsers block audio until the visitor clicks "Continue call".
-- The Slack, Zendesk, Salesforce, HubSpot, Cal.com and Calendly connections have been tested against mock services, not real accounts yet.
-- Actions can't reach private network addresses, but a DNS rebinding attack can still get past that check. Fix this before running actions you don't trust.
-
 ## Contributing
 
 Pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first. On your first pull request you'll be asked to sign our [CLA](CLA.md), once.
