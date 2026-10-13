@@ -1,8 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import type { PostHog } from "posthog-js";
-import { POSTHOG_HOST, POSTHOG_TOKEN } from "@/config/analytics";
-import { IS_CLOUD } from "@/config/edition";
+import { POSTHOG_ENABLED, POSTHOG_HOST, POSTHOG_TOKEN } from "@/config/analytics";
 import { supabaseClient } from "@/lib/supabase/client";
 
 // PostHog in the dashboard: product analytics and session recordings for
@@ -10,8 +9,6 @@ import { supabaseClient } from "@/lib/supabase/client";
 // the widget. People are known by their user id, never their email.
 // Recordings mask every input and the text inside `ph-mask` (visitors'
 // conversations, insights, emails); `ph-no-capture` leaves an element out.
-const ENABLED = IS_CLOUD && POSTHOG_TOKEN.startsWith("phc_");
-
 let loading: Promise<PostHog> | null = null;
 
 function load() {
@@ -31,7 +28,7 @@ function load() {
 
 export function ProductAnalytics() {
   useEffect(() => {
-    if (!ENABLED) return;
+    if (!POSTHOG_ENABLED) return;
     let cancelled = false;
     void (async () => {
       const posthog = await load();

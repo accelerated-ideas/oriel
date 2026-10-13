@@ -5,18 +5,18 @@ import { after } from "next/server";
 import { z } from "zod";
 import { getUser } from "@/lib/auth/get-user";
 import { isReviewAccount } from "@/lib/auth/review";
-import { welcomeNewUser } from "@/lib/emails/welcome";
+import { onSignIn } from "@/lib/auth/sign-up";
 import { notifyEvent } from "@/lib/notify";
 import { rateLimit } from "@/lib/rate-limit";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
 import { safeNextPath } from "@/lib/utils";
 
-// Right after signing in with a code: welcomes someone new, once. Runs after
-// the response, so it never slows the way in.
+// Right after signing in with a code: someone new is welcomed, once, and their
+// sign-up reported (src/lib/auth/sign-up.ts).
 export async function actionSignedIn() {
   const user = await getUser();
-  if (user) after(() => welcomeNewUser(user, "email code"));
+  if (user) await onSignIn(user, "email code");
 }
 
 // Signs out. With `next` (and `email`) in the form, goes back to sign-in set

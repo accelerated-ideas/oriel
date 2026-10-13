@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ANALYTICS_ENABLED, POSTHOG_TOKEN } from "@/config/analytics";
+import { ANALYTICS_ENABLED, POSTHOG_ENABLED, SIGN_UP_COOKIE } from "@/config/analytics";
 import { BRAND } from "@/config/brand";
 import { LEGAL, LEGAL_UPDATED_AT } from "@/config/legal";
 import { LegalPage, type LegalSection } from "@/components/web/legal/legal-page";
@@ -12,11 +12,10 @@ export const metadata: Metadata = pageMetadata({ title: "Privacy policy", descri
 
 // Written from what the code does: src/app/api/widget/session (what's stored
 // per conversation), src/lib/widget/embed-script.ts (browser storage), the
-// providers in README "Stack", src/components/consent (Google Analytics, only
-// described once NEXT_PUBLIC_GA_MEASUREMENT_ID is set) and
-// src/components/dashboard/product-analytics.tsx (PostHog, once its token is
-// set). Update it when those change.
-const POSTHOG_ENABLED = POSTHOG_TOKEN.startsWith("phc_");
+// providers in README "Built with", src/components/consent (Google Analytics, only
+// described while it's on, src/config/analytics.ts) and
+// src/components/dashboard/product-analytics.tsx (PostHog, likewise). Update it
+// when those change.
 const PROVIDERS = [
   { name: "Supabase", use: "Our database, and sign-in" },
   { name: "Anthropic (Claude API)", use: "Writing answers, unless an assistant is set to use another model" },
@@ -254,6 +253,10 @@ const SECTIONS: LegalSection[] = [
                 <strong>Google Analytics cookies:</strong> <code>_ga</code> and <code>_ga_&hellip;</code>, which count visits and how
                 people move around, for up to 13 months: on our website only if you allow them, and in the dashboard for everyone
                 signed in. Google doesn&apos;t store your IP address, and its advertising features and Google signals are off.
+              </li>
+              <li>
+                <strong>Signing up:</strong> a <code>{SIGN_UP_COOKIE}</code> cookie set when you create an account, so Google
+                Analytics counts the sign-up once. It&apos;s removed right after, or within an hour.
               </li>
             </>
           )}

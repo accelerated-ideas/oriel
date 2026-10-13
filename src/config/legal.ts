@@ -15,7 +15,7 @@ export const LEGAL = {
   dataProtectionAuthority: "the Estonian Data Protection Inspectorate (Andmekaitse Inspektsioon)",
   email: "hello@useoriel.com",
   // When the terms and privacy pages last changed.
-  updated: "October 9, 2026",
+  updated: "October 13, 2026",
 } as const;
 
 // The same day as a date, for the sitemap and structured data. Read as UTC:

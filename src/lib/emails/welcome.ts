@@ -39,18 +39,22 @@ export function renderWelcomeEmail() {
   return { subject, html, text: emailTextFromHtml(html) };
 }
 
-// Once per person, the first time they sign in: tells the team's Telegram
-// about the sign-up, then sends the welcome email (hosted edition). The claim
-// comes first, so two sign-ins at once count once.
-export async function welcomeNewUser(user: { id: string; email?: string | null }, via: "email code" | "Google") {
+// True for someone's first sign-in, once per person: two sign-ins at once
+// count once.
+export async function claimWelcome(userId: string) {
   const { data: claimed } = await supabaseAdmin
     .from("users")
     .update({ welcome_email_sent_at: new Date().toISOString() })
-    .eq("id", user.id)
+    .eq("id", userId)
     .is("welcome_email_sent_at", null)
     .select("id")
     .maybeSingle();
-  if (!claimed) return;
+  return Boolean(claimed);
+}
+
+// After claimWelcome: tells the team's Telegram about the sign-up, then sends
+// the welcome email (hosted edition).
+export async function welcomeNewUser(user: { id: string; email?: string | null }, via: "email code" | "Google") {
   await notifyEvent(`🎉 New user signed up with ${via}`, { user: user.id });
 
   if (!IS_CLOUD || !user.email || !emailConfigured()) return;

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import Script from "next/script";
-import { ANALYTICS_COOKIE_DAYS, ANALYTICS_ENABLED, GA_MEASUREMENT_ID } from "@/config/analytics";
+import { ANALYTICS_COOKIE_DAYS, ANALYTICS_ENABLED, GA_MEASUREMENT_ID, SIGN_UP_COOKIE } from "@/config/analytics";
 import { useConsent } from "./use-consent";
 
 // gtag, and the per-property switch Google Analytics checks before sending anything.
@@ -40,9 +40,29 @@ gtag("consent", "default", { analytics_storage: ${storage}, ad_storage: "denied"
 gtag("js", new Date());
 gtag("config", ${id}, { allow_google_signals: false, allow_ad_personalization_signals: false, cookie_expires: ${ANALYTICS_COOKIE_DAYS * 24 * 60 * 60} });`}
       </Script>
-      <Script id="ga-tag" src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_MEASUREMENT_ID)}`} strategy="afterInteractive" />
+      <Script
+        id="ga-tag"
+        src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_MEASUREMENT_ID)}`}
+        strategy="afterInteractive"
+        onReady={reportSignUp}
+      />
     </>
   );
+}
+
+// Someone who just signed up (src/lib/auth/sign-up.ts) is reported once, with
+// Google Analytics' recommended sign_up event. Google Ads imports it as a
+// conversion.
+function reportSignUp() {
+  const prefix = `${SIGN_UP_COOKIE}=`;
+  const method = document.cookie
+    .split(";")
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith(prefix))
+    ?.slice(prefix.length);
+  if (!method) return;
+  document.cookie = `${SIGN_UP_COOKIE}=; Max-Age=0; path=/`;
+  (window as unknown as AnalyticsWindow).gtag?.("event", "sign_up", { method });
 }
 
 // Google Analytics keeps _ga and _ga_<id> on the site's top domain, so try the

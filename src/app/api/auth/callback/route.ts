@@ -1,5 +1,5 @@
-import { after, NextResponse, type NextRequest } from "next/server";
-import { welcomeNewUser } from "@/lib/emails/welcome";
+import { NextResponse, type NextRequest } from "next/server";
+import { onSignIn } from "@/lib/auth/sign-up";
 import { supabaseServer } from "@/lib/supabase/server";
 import { safeNextPath } from "@/lib/utils";
 
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     console.error("Google sign-in failed", error);
     return backToSignIn("google_failed");
   }
-  // Someone new is welcomed, once.
-  after(() => welcomeNewUser(data.user, "Google"));
+  // Someone new is welcomed, once, and their sign-up reported.
+  await onSignIn(data.user, "Google");
   return NextResponse.redirect(new URL(next, url.origin));
 }
