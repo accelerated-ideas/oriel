@@ -4,7 +4,7 @@ import { IS_CLOUD } from "@/config/edition";
 // The switch for all measuring: Google Analytics (with its sign-up event) and
 // PostHog. Off, nothing loads anywhere, there's no cookie banner, and the
 // privacy page leaves them out, even with their keys set.
-const MEASURING = false;
+const MEASURING = true;
 
 // Google Analytics: on the marketing site after consent, and in the dashboard
 // for everyone signed in (src/components/consent). Unset, the site has no
